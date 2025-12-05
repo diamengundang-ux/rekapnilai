@@ -15,8 +15,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut,
-  GoogleAuthProvider, // Import Provider Google
-  signInWithPopup     // Import Popup Login
+  GoogleAuthProvider, 
+  signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
 
@@ -50,7 +50,7 @@ const calculateAverage = (value) => {
     return parseFloat(value) || 0;
 };
 
-// --- LOGIN COMPONENT (UPDATED WITH GOOGLE) ---
+// --- LOGIN COMPONENT ---
 const LoginScreen = ({ onLoginSuccess }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
@@ -58,17 +58,25 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Fungsi Login Google
   const handleGoogleLogin = async () => {
       setError('');
       setLoading(true);
       const provider = new GoogleAuthProvider();
       try {
           await signInWithPopup(auth, provider);
-          // Berhasil login, onAuthStateChanged di App akan menangani sisanya
       } catch (err) {
-          setError("Gagal login dengan Google. Pastikan 'Google Provider' sudah aktif di Firebase Console.");
-          console.error(err);
+          console.error("Google Login Error:", err);
+          if (err.code === 'auth/unauthorized-domain') {
+            setError(`⚠️ KEAMANAN: Domain ini belum diizinkan. 
+            Buka Firebase Console -> Authentication -> Settings -> Authorized Domains.
+            Lalu tambahkan domain ini: ${window.location.hostname}`);
+          } else if (err.code === 'auth/popup-closed-by-user') {
+            setError("Login dibatalkan.");
+          } else if (err.code === 'auth/operation-not-allowed') {
+            setError("Provider Google belum diaktifkan di Firebase Console.");
+          } else {
+            setError(`Gagal login: ${err.message}`);
+          }
       } finally {
           setLoading(false);
       }
@@ -103,7 +111,6 @@ const LoginScreen = ({ onLoginSuccess }) => {
         </div>
 
         <div className="space-y-4">
-            {/* TOMBOL GOOGLE UTAMA */}
             <button 
                 onClick={handleGoogleLogin}
                 disabled={loading}
@@ -150,7 +157,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                 </div>
             </div>
 
-            {error && <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">{error}</div>}
+            {error && <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg whitespace-pre-line">{error}</div>}
 
             <button 
                 type="submit" disabled={loading}
