@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, BookOpen, School, FileText, LayoutDashboard, 
-  Plus, Save, Trash2, Edit2, Download, Printer, Search,
+  Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, User
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
@@ -264,7 +264,7 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
                 <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                   <td className="p-4 font-medium text-slate-800">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td>
                   <td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td>
-                  <td className="p-4 text-center"><button onClick={() => deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"><Trash2 size={18} /></button></td>
+                  <td className="p-4 text-center"><button onClick={() => deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition-colors"><Trash size={18} /></button></td>
                 </tr>
               )) : (<tr><td colSpan="4" className="p-8 text-center text-slate-400">Belum ada data siswa</td></tr>)}
             </tbody>
@@ -296,7 +296,7 @@ const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {subjects.map((s) => (
-              <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium text-slate-800">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-right"><button onClick={() => deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash2 size={18} /></button></td></tr>
+              <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium text-slate-800">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-right"><button onClick={() => deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18} /></button></td></tr>
             ))}
             {subjects.length === 0 && (<tr><td colSpan="3" className="p-6 text-center text-slate-400">Belum ada mata pelajaran</td></tr>)}
           </tbody>
@@ -441,6 +441,124 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
            <div className="text-center"><p>{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p><p>Guru Mata Pelajaran</p><br/><br/><br/><p className="font-bold underline">Pak Guru PJOK</p><p>NIP. .......................</p></div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const ProfilSekolah = ({ profile, saveProfile }) => {
+    const [formData, setFormData] = useState(profile);
+    useEffect(() => { setFormData(profile); }, [profile]);
+    const handleSubmit = (e) => { e.preventDefault(); saveProfile(formData); alert("Disimpan!"); };
+    return (
+      <div className="max-w-2xl bg-white p-8 rounded-xl shadow-sm border border-slate-100">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><School className="text-blue-600"/> Edit Profil Sekolah</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div><label className="block text-sm text-slate-600 mb-1">Nama Sekolah</label><input type="text" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="w-full border p-2 rounded outline-none"/></div>
+            <div><label className="block text-sm text-slate-600 mb-1">Alamat</label><textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2 rounded outline-none"></textarea></div>
+            <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm text-slate-600 mb-1">NPSN</label><input type="text" value={formData.npsn} onChange={e=>setFormData({...formData, npsn:e.target.value})} className="w-full border p-2 rounded outline-none"/></div>
+                <div><label className="block text-sm text-slate-600 mb-1">Kode Pos</label><input type="text" value={formData.kodepos} onChange={e=>setFormData({...formData, kodepos:e.target.value})} className="w-full border p-2 rounded outline-none"/></div>
+            </div>
+            <div className="border-t pt-4 mt-4">
+                <h3 className="font-semibold text-slate-800 mb-4">Data Kepala Sekolah</h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <div><label className="block text-sm text-slate-600 mb-1">Nama Kepsek</label><input type="text" value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2 rounded outline-none"/></div>
+                    <div><label className="block text-sm text-slate-600 mb-1">NIP</label><input type="text" value={formData.nip} onChange={e=>setFormData({...formData, nip:e.target.value})} className="w-full border p-2 rounded outline-none"/></div>
+                </div>
+            </div>
+            <div className="pt-4"><button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded w-full font-bold flex justify-center items-center gap-2"><Save size={18}/> Simpan Profil</button></div>
+        </form>
+      </div>
+    );
+};
+
+// --- MAIN APP COMPONENT ---
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [students, setStudents] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [schoolProfile, setSchoolProfile] = useState({ nama: 'SDN Contoh', alamat: 'Jl. Contoh', npsn: '-', kodepos: '-', kepsek: '-', nip: '-' });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // ISOLATED DATA FETCHING: Only fetch data for the LOGGED IN user
+  useEffect(() => {
+    if (!user) {
+        setStudents([]); setSubjects([]); setGrades([]);
+        return;
+    }
+    // Path: users/{uid}/students
+    const studentsRef = collection(db, 'users', user.uid, 'students');
+    const subjectsRef = collection(db, 'users', user.uid, 'subjects');
+    const gradesRef = collection(db, 'users', user.uid, 'grades');
+    const profileRef = collection(db, 'users', user.uid, 'schoolProfile');
+
+    const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); });
+
+    return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); };
+  }, [user]);
+
+  // ISOLATED DATA SAVING: Save to users/{uid}/...
+  const addStudent = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'students'), { ...data, createdAt: serverTimestamp() });
+  const deleteStudent = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'students', id));
+  const addSubject = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'subjects'), data);
+  const deleteSubject = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'subjects', id));
+  const saveGrade = async (data, gradeId) => { 
+      if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); 
+  };
+  const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
+  const handleLogout = async () => { await signOut(auth); };
+
+  if (loading) return <div className="h-screen flex items-center justify-center text-blue-600">Memuat...</div>;
+  if (!user) return <LoginScreen />;
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} />;
+      case 'siswa': return <DataSiswa students={students} addStudent={addStudent} deleteStudent={deleteStudent} />;
+      case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} deleteSubject={deleteSubject} />;
+      case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} schoolProfile={schoolProfile}/>;
+      case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />;
+      default: return <Dashboard />;
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-slate-100 font-sans text-slate-900">
+      <style>{`@media print { .no-print { display: none !important; } .print-area { position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 20px; background: white; border: none; } .print-header, .print-footer { display: block !important; } .print-only { display: inline !important; } input { border: none !important; text-align: center; } body { background: white; } }`}</style>
+      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shadow-xl z-10">
+        <div className="p-6 flex items-center gap-3 border-b border-slate-100"><div className="bg-blue-600 text-white p-2 rounded-lg"><GraduationCap size={24} /></div><div><h1 className="font-bold text-lg text-slate-800 tracking-tight">SINILAI</h1><p className="text-xs text-slate-500">Sistem Rekap PJOK</p></div></div>
+        <nav className="flex-1 p-4 space-y-2">
+            {[{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'sekolah', label: 'Profil Sekolah', icon: School }, { id: 'siswa', label: 'Data Siswa', icon: Users }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen }, { id: 'nilai', label: 'Input Nilai', icon: Pencil }].map((item) => (
+                <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-blue-50 text-blue-700 font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}><div className="flex items-center gap-3"><item.icon size={20} /><span>{item.label}</span></div>{activeTab === item.id && <ChevronRight size={16} />}</button>
+            ))}
+        </nav>
+        <div className="p-4 border-t border-slate-100">
+            <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors mb-4 font-bold"><LogOut size={20}/> Logout</button>
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-4 text-white"><p className="text-xs opacity-70 mb-1">Versi Aplikasi</p><p className="font-bold text-sm">v2.0 (SaaS Edition)</p><p className="text-xs mt-2 opacity-50">© 2025 Guru Developer</p></div>
+        </div>
+      </aside>
+      <main className="flex-1 overflow-y-auto relative">
+        <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20"><div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>SINILAI</div><button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600">{isMobileMenuOpen ? <X /> : <Menu />}</button></div>
+        {isMobileMenuOpen && (<div className="md:hidden absolute top-16 left-0 w-full bg-white shadow-xl z-20 border-b border-slate-200 p-4 space-y-2 animate-fade-in-down">{[{ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'sekolah', label: 'Profil Sekolah', icon: School }, { id: 'siswa', label: 'Data Siswa', icon: Users }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen }, { id: 'nilai', label: 'Input Nilai', icon: Pencil }].map((item) => (<button key={item.id} onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-3 p-3 rounded-lg ${activeTab === item.id ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600'}`}><item.icon size={20} /> {item.label}</button>))} <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 text-red-600 font-bold border-t mt-2"><LogOut size={20}/> Logout</button></div>)}
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+             <div className="flex justify-between items-center mb-8"><div><h2 className="text-2xl font-bold text-slate-900 capitalize">{activeTab.replace('-', ' ')}</h2><p className="text-slate-500 text-sm hidden md:block">{activeTab === 'dashboard' && 'Ringkasan data akademik sekolah Anda.'}{activeTab === 'siswa' && 'Kelola data siswa, tambah, atau hapus siswa.'}{activeTab === 'nilai' && 'Input nilai harian, UTS, dan UAS siswa.'}</p></div><div className="hidden md:flex items-center gap-3"><div className="bg-white px-4 py-2 rounded-full border shadow-sm text-sm font-medium text-slate-600">Tahun Ajaran: <span className="text-blue-600 font-bold">2025/2026</span></div></div></div>
+             {renderContent()}
+        </div>
+      </main>
     </div>
   );
 }
