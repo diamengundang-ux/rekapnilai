@@ -240,11 +240,12 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA & OTHER FEATURES (SAMA) ---
+// --- DATA SISWA ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
   const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
+  
   const handleFileUpload = (e) => {
     if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
@@ -252,14 +253,25 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
     const reader = new FileReader();
     reader.onload = (evt) => {
         try {
-            const bstr = evt.target.result; const wb = XLSX.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws);
-            let count = 0; data.forEach(row => { if(row.Nama && row.Kelas) { addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' }); count++; } });
+            const bstr = evt.target.result;
+            const wb = XLSX.read(bstr, { type: 'binary' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(ws);
+            let count = 0;
+            data.forEach(row => {
+                if(row.Nama && row.Kelas) {
+                    addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' });
+                    count++;
+                }
+            });
             alert(`Berhasil mengimpor ${count} siswa!`);
         } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
     };
     reader.readAsBinaryString(file);
   };
+
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
@@ -279,6 +291,7 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   );
 };
 
+// --- MATA PELAJARAN ---
 const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     const [newMapel, setNewMapel] = useState('');
     const [newKKM, setNewKKM] = useState(75);
@@ -291,6 +304,7 @@ const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     )
 }
 
+// --- SCORE DETAIL MODAL ---
 const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     const [localScores, setLocalScores] = useState([]);
     useEffect(() => { if (Array.isArray(scores)) { setLocalScores([...scores]); } else if (scores) { setLocalScores([scores]); } else { setLocalScores([]); } }, [scores, isOpen]);
@@ -335,37 +349,11 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
 };
 
 const ProfilSekolah = ({ profile, saveProfile }) => {
-    const [formData, setFormData] = useState({ 
-        nama: '', alamat: '', kepsek: '', email: '', website: '', telepon: '', ...profile 
-    });
-    
-    useEffect(() => { setFormData({ ...formData, ...profile }); }, [profile]);
-
-    const handleSubmit = (e) => { 
-        e.preventDefault(); 
-        saveProfile(formData); 
-        alert("Profil Sekolah Berhasil Disimpan!"); 
-    };
-
+    const [formData, setFormData] = useState(profile);
+    useEffect(() => { setFormData(profile); }, [profile]);
+    const handleSubmit = (e) => { e.preventDefault(); saveProfile(formData); alert("Disimpan!"); };
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><School className="text-blue-600"/> Edit Profil Sekolah</h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nama Sekolah</label>
-                <input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: SDN 01 Pagi"/>
-            </div>
-            <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
-                <textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jl. Raya No. 123..." rows="3"/>
-            </div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label><input value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Budi Santoso, M.Pd"/></div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nomor Telepon</label><input value={formData.telepon} onChange={e=>setFormData({...formData, telepon:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="021-1234567"/></div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Email Sekolah</label><input value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@sekolah.sch.id"/></div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Website Sekolah</label><input value={formData.website} onChange={e=>setFormData({...formData, website:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="www.sekolah.sch.id"/></div>
-            <div className="md:col-span-2 pt-4"><button type="submit" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">Simpan Perubahan</button></div>
-        </form>
-      </div>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100"><h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><School className="text-blue-600"/> Edit Profil Sekolah</h2><form onSubmit={handleSubmit} className="space-y-4"><input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="w-full border p-2 rounded" placeholder="Nama Sekolah"/><textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2 rounded" placeholder="Alamat"/><button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded w-full font-bold">Simpan</button></form></div>
     );
 };
 
@@ -381,7 +369,7 @@ export default function App() {
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [grades, setGrades] = useState([]);
-  const [schoolProfile, setSchoolProfile] = useState({ nama: '', alamat: '', kepsek: '', telepon: '', email: '', website: '' });
+  const [schoolProfile, setSchoolProfile] = useState({ nama: 'SDN Contoh', alamat: 'Jl. Contoh', npsn: '-', kodepos: '-', kepsek: '-', nip: '-' });
 
   useEffect(() => { const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { setUser(currentUser); if (currentUser) { try { const userRef = doc(db, 'users', currentUser.uid, 'settings', 'profile'); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); setIsPremium(data.isPremium === true); if (!data.phoneNumber) { setNeedsSetup(true); } else { setNeedsSetup(false); } } else { setIsPremium(false); setNeedsSetup(true); } } catch (e) { console.log("Error checking user status", e); } } setLoading(false); }); return () => unsubscribe(); }, []);
   useEffect(() => { if (!user || needsSetup) return; const studentsRef = collection(db, 'users', user.uid, 'students'); const subjectsRef = collection(db, 'users', user.uid, 'subjects'); const gradesRef = collection(db, 'users', user.uid, 'grades'); const profileRef = collection(db, 'users', user.uid, 'schoolProfile'); const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); }); return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); }; }, [user, needsSetup]);
@@ -394,9 +382,6 @@ export default function App() {
   const saveGrade = async (data, gradeId) => { if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); };
   const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
   const handleLogout = async () => { await signOut(auth); };
-
-  const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
-  const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
   
   // DEV MODE (SIMULASI ADMIN)
   const toggleDevPremium = async () => {
@@ -409,6 +394,9 @@ export default function App() {
     } catch (error) { console.error("Dev Error:", error); }
   };
 
+  const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
+  const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
+  
   if (loading) return <div className="h-screen flex items-center justify-center text-blue-600">Memuat...</div>;
   if (!user) return <LoginScreen />;
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
@@ -418,13 +406,24 @@ export default function App() {
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900 overflow-hidden">
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} userEmail={user.email} />
-      {isMobileMenuOpen && (<div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>)}
       
+      {/* Mobile Sidebar Overlay (Backdrop) */}
+      {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+      
+      {/* Sidebar (Desktop & Mobile Drawer) */}
       <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Header Sidebar */}
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
-            <div className="flex items-center gap-3"><div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div><div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div></div>
+            <div className="flex items-center gap-3">
+                <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div>
+            </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
+        
+        {/* Menu Items */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             <p className="text-xs font-bold text-slate-400 px-4 mb-2 mt-2 uppercase tracking-wider">Menu Utama</p>
             {menuItems.map((item) => {
@@ -432,20 +431,30 @@ export default function App() {
                 const isActive = activeTab === item.id;
                 return (
                     <button key={item.id} onClick={() => handleMenuClick(item)} className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${isActive ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100' : 'text-slate-600 hover:bg-slate-50'}`}>
-                        <div className="flex items-center gap-3"><item.icon size={20} className={`${isActive ? "text-blue-600" : isLocked ? "text-slate-400" : "text-slate-500"}`} /><span className={`font-medium ${isActive ? "text-blue-700" : isLocked ? "text-slate-400" : "text-slate-600"}`}>{item.label}</span></div>
+                        <div className="flex items-center gap-3">
+                            <item.icon size={20} className={`${isActive ? "text-blue-600" : isLocked ? "text-slate-400" : "text-slate-500"}`} />
+                            <span className={`font-medium ${isActive ? "text-blue-700" : isLocked ? "text-slate-400" : "text-slate-600"}`}>{item.label}</span>
+                        </div>
                         {isLocked ? (<Lock size={16} className="text-slate-300" />) : isActive && <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>}
                     </button>
                 )
             })}
         </nav>
+
+        {/* Footer Sidebar */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             {!isPremium && (
                 <div onClick={() => setShowUpgradeModal(true)} className="mb-3 bg-gradient-to-r from-orange-400 to-pink-500 p-4 rounded-xl text-white cursor-pointer hover:shadow-lg transition-all relative overflow-hidden group">
-                    <div className="relative z-10"><h4 className="font-bold text-sm flex items-center gap-2"><Crown size={16} className="text-yellow-200"/> Upgrade Pro</h4><p className="text-xs mt-1 opacity-90 group-hover:underline">Buka semua fitur!</p></div>
+                    <div className="relative z-10">
+                        <h4 className="font-bold text-sm flex items-center gap-2"><Crown size={16} className="text-yellow-200"/> Upgrade Pro</h4>
+                        <p className="text-xs mt-1 opacity-90 group-hover:underline">Buka semua fitur!</p>
+                    </div>
                     <Star className="absolute -right-3 -bottom-3 text-white opacity-20 w-20 h-20 rotate-12 group-hover:rotate-45 transition-transform duration-500" />
                 </div>
             )}
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100 mb-2"><LogOut size={18}/> Keluar Aplikasi</button>
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100 mb-2">
+                <LogOut size={18}/> Keluar Aplikasi
+            </button>
             
             {/* TOMBOL SIMULASI ADMIN (Hapus ini jika sudah tidak butuh testing) */}
             <div className="pt-2 border-t border-slate-200">
@@ -456,6 +465,8 @@ export default function App() {
             </div>
         </div>
       </aside>
+
+      {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto relative h-full w-full bg-slate-50">
         <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-30">
             <div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>NILAIKU</div>
