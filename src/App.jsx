@@ -20,7 +20,7 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-import * as XLSX from 'xlsx'; // Pastikan baris ini aktif
+// Removed 'import * as XLSX from 'xlsx';' to fix build error. We will load it via CDN.
 
 // --- KONEKSI KE FIREBASE PRIBADI BAPAK ---
 const firebaseConfig = {
@@ -299,7 +299,10 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
   
   const handleFileUpload = (e) => {
-    if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
+    // --- UPDATED: Use window.XLSX instead of import ---
+    const XLSX = window.XLSX;
+    if (!XLSX) { alert("⚠️ Library Excel sedang dimuat. Mohon tunggu sebentar lalu coba lagi."); return; }
+    
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -492,6 +495,12 @@ export default function App() {
   const [schoolProfile, setSchoolProfile] = useState({ nama: 'SDN Contoh', alamat: 'Jl. Contoh', npsn: '-', kodepos: '-', kepsek: '-', nip: '-' });
 
   useEffect(() => {
+    // --- ADDED: Dynamic script loading for SheetJS (xlsx) ---
+    const script = document.createElement('script');
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    script.async = true;
+    document.body.appendChild(script);
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -509,7 +518,14 @@ export default function App() {
       }
       setLoading(false);
     });
-    return () => unsubscribe();
+    
+    // Cleanup script on unmount
+    return () => {
+      unsubscribe();
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
   }, []);
 
   useEffect(() => {
