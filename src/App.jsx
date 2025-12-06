@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -20,11 +20,8 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-
-// --- PENTING UNTUK GITHUB ---
-// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
-// import * as XLSX from 'xlsx'; 
-const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
+// import * as XLSX from 'xlsx'; // Aktifkan di GitHub
+const XLSX = null; // Hapus baris ini saat di GitHub
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -89,6 +86,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     useEffect(() => { if(!isOpen) setStep(1); }, [isOpen]);
     if (!isOpen) return null;
+
     const BANK_ACCOUNTS = [
         { bank: 'BCA', number: '1234567890', name: 'ADMIN NILAIKU', color: 'text-blue-700', bg: 'bg-blue-50' },
         { bank: 'MANDIRI', number: '123000456000', name: 'ADMIN NILAIKU', color: 'text-yellow-600', bg: 'bg-yellow-50' },
@@ -98,7 +96,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
     const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     const handleConfirmWA = () => {
-        const text = `Halo Admin NILAIKU, saya sudah transfer.\n\n📧 Email: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon diproses.`;
+        const text = `Halo Admin NILAIKU, saya sudah transfer pembayaran.\n\n📧 Email Akun: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon segera diproses aktivasinya. Terima kasih!`;
         window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(text)}`, '_blank');
     };
 
@@ -110,10 +108,12 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                     <div>
                         <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4"><Crown size={28} className="text-yellow-300" /></div>
                         <h2 className="text-2xl font-bold mb-2">Upgrade Premium</h2>
-                        <p className="opacity-90 mb-6 text-sm">Akses fitur lengkap untuk produktivitas maksimal.</p>
+                        <p className="opacity-90 mb-6 text-sm">Fitur "Input Nilai" adalah fitur Premium. Upgrade sekarang untuk mulai merekap nilai siswa.</p>
                         <ul className="space-y-3 text-sm">
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Input Nilai Unlimited</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Excel & PDF</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Buka Menu Input Nilai</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Hitung Rata-rata Otomatis</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Laporan ke Excel</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Simpan Data Tanpa Batas</span></li>
                         </ul>
                     </div>
                     <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU</p>
@@ -121,7 +121,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                 <div className="p-6 md:p-8 md:w-3/5 bg-slate-50 flex flex-col">
                     {step === 1 && (
                         <div className="animate-fade-in flex-1 flex flex-col">
-                            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Pilih Paket</h3>
+                            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Pilih Paket Terbaikmu</h3>
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
@@ -174,32 +174,13 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const handleGoogleLogin = async () => {
-      setError(''); setLoading(true); const provider = new GoogleAuthProvider();
-      try { await signInWithPopup(auth, provider); } 
-      catch (err) { console.error(err); setError("Gagal login Google."); } 
-      finally { setLoading(false); }
-  };
-
-  const handleAuth = async (e) => {
-    e.preventDefault(); setError(''); setLoading(true);
-    try { isRegistering ? await createUserWithEmailAndPassword(auth, email, password) : await signInWithEmailAndPassword(auth, email, password); } 
-    catch (err) { setError(err.message); } finally { setLoading(false); }
-  };
-
+  const handleGoogleLogin = async () => { setError(''); setLoading(true); const provider = new GoogleAuthProvider(); try { await signInWithPopup(auth, provider); } catch (err) { console.error(err); setError("Gagal login Google."); } finally { setLoading(false); } };
+  const handleAuth = async (e) => { e.preventDefault(); setError(''); setLoading(true); try { isRegistering ? await createUserWithEmailAndPassword(auth, email, password) : await signInWithEmailAndPassword(auth, email, password); } catch (err) { setError(err.message); } finally { setLoading(false); } };
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div>
-          <h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1>
-          <p className="text-slate-500">Sistem Aplikasi Nilai Digital</p>
-        </div>
-        <button onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 py-3 rounded-lg font-bold flex justify-center gap-2 hover:bg-slate-50 transition-colors">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"/> 
-            <span className="text-sm md:text-base">Masuk dengan Google</span>
-        </button>
+        <div className="text-center mb-8"><div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div><h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1><p className="text-slate-500">Sistem Aplikasi Nilai Digital</p></div>
+        <button onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 py-3 rounded-lg font-bold flex justify-center gap-2 hover:bg-slate-50 transition-colors"><img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"/> <span className="text-sm md:text-base">Masuk dengan Google</span></button>
         <div className="relative flex py-4 items-center"><div className="flex-grow border-t"></div><span className="mx-4 text-xs text-slate-400">ATAU EMAIL</span><div className="flex-grow border-t"></div></div>
         <form onSubmit={handleAuth} className="space-y-4">
             <input type="email" required className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/>
@@ -215,20 +196,11 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
 // --- DASHBOARD ---
 const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade }) => {
-  const totalSiswa = students.length;
-  const totalMapel = subjects.length;
-  const totalNilai = grades.length;
+  const totalSiswa = students.length; const totalMapel = subjects.length; const totalNilai = grades.length;
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div className="relative z-10">
-            <h1 className="text-xl md:text-2xl font-bold mb-2">Hallo Bapak/Ibu Guru! 👋</h1>
-            <p className="opacity-90 mb-4 text-sm md:text-base">Anda login sebagai: <b>{user?.email}</b></p>
-            <div className="flex flex-wrap gap-2">
-                <span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>{isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}</span>
-                {!isPremium && (<button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">Upgrade Sekarang 🚀</button>)}
-            </div>
-        </div>
+        <div className="relative z-10"><h1 className="text-xl md:text-2xl font-bold mb-2">Hallo Bapak/Ibu Guru! 👋</h1><p className="opacity-90 mb-4 text-sm md:text-base">Anda login sebagai: <b>{user?.email}</b></p><div className="flex flex-wrap gap-2"><span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>{isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}</span>{!isPremium && (<button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">Upgrade Sekarang 🚀</button>)}</div></div>
         <GraduationCap className="absolute -right-6 -bottom-6 text-white opacity-10 w-32 h-32 md:w-48 md:h-48" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
@@ -240,7 +212,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA & OTHER FEATURES (SAMA) ---
+// --- DATA SISWA ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -262,23 +234,13 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
   return (
     <div className="space-y-6">
-      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"><h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3><div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div></div>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/>
-            <input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
-            <input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
-            <button type="submit" className="bg-blue-600 text-white p-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-700 font-medium transition-colors w-full"><Plus size={18}/> Tambah</button>
-        </form>
-      </div>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td></tr>))}</tbody></table></div>
-      </div>
+      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100"><div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"><h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3><div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div></div><form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4"><input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/><input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/><input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/><button type="submit" className="bg-blue-600 text-white p-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-700 font-medium transition-colors w-full"><Plus size={18}/> Tambah</button></form></div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td></tr>))}</tbody></table></div></div>
     </div>
   );
 };
 
+// --- MATA PELAJARAN (FIX: ADA KKM) ---
 const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     const [newMapel, setNewMapel] = useState('');
     const [newKKM, setNewKKM] = useState(75);
@@ -291,6 +253,7 @@ const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     )
 }
 
+// --- SCORE DETAIL MODAL ---
 const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     const [localScores, setLocalScores] = useState([]);
     useEffect(() => { if (Array.isArray(scores)) { setLocalScores([...scores]); } else if (scores) { setLocalScores([scores]); } else { setLocalScores([]); } }, [scores, isOpen]);
@@ -304,39 +267,60 @@ const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     );
 };
 
+// --- INPUT NILAI (FIX: BLANK SCREEN) ---
 const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, schoolProfile }) => {
   const availableClasses = useMemo(() => { const uniqueClasses = [...new Set(students.map(s => s.kelas))]; return uniqueClasses.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })); }, [students]);
   const [selectedKelas, setSelectedKelas] = useState('');
   const [selectedMapel, setSelectedMapel] = useState(subjects[0]?.id || '');
   const [editingGrade, setEditingGrade] = useState({});
   const [modalConfig, setModalConfig] = useState({ isOpen: false, studentId: null, type: '', currentScores: [] });
+
   useEffect(() => { if (!selectedKelas && availableClasses.length > 0) setSelectedKelas(availableClasses[0]); }, [availableClasses]);
   useEffect(() => { if (!selectedMapel && subjects.length > 0) setSelectedMapel(subjects[0].id); }, [subjects]);
+
+  // Safe check for mapel
   const filteredStudents = students.filter(s => s.kelas === selectedKelas);
   const currentMapelData = subjects.find(s => s.id === selectedMapel);
   const kkm = currentMapelData?.kkm || 75;
-  const getStudentGrade = (studentId) => { const dbGrade = grades.find(g => g.studentId === studentId && g.subjectId === selectedMapel); const localGrade = editingGrade[studentId] || {}; return { harian: localGrade.harian !== undefined ? localGrade.harian : (dbGrade?.harian || []), tugas: localGrade.tugas !== undefined ? localGrade.tugas : (dbGrade?.tugas || []), uts: localGrade.uts !== undefined ? localGrade.uts : (dbGrade?.uts || ''), uas: localGrade.uas !== undefined ? localGrade.uas : (dbGrade?.uas || ''), dbId: dbGrade?.id }; };
+
+  // Safe check for schoolProfile to prevent blank screen
+  const schoolName = schoolProfile?.nama || "NAMA SEKOLAH";
+  const schoolAddress = schoolProfile?.alamat || "Alamat Sekolah";
+
+  const getStudentGrade = (studentId) => {
+    const dbGrade = grades.find(g => g.studentId === studentId && g.subjectId === selectedMapel);
+    const localGrade = editingGrade[studentId] || {};
+    return {
+      harian: localGrade.harian !== undefined ? localGrade.harian : (dbGrade?.harian || []),
+      tugas: localGrade.tugas !== undefined ? localGrade.tugas : (dbGrade?.tugas || []),
+      uts: localGrade.uts !== undefined ? localGrade.uts : (dbGrade?.uts || ''),
+      uas: localGrade.uas !== undefined ? localGrade.uas : (dbGrade?.uas || ''),
+      dbId: dbGrade?.id
+    };
+  };
+
   const handleSimpleChange = (studentId, field, value) => { setEditingGrade(prev => ({ ...prev, [studentId]: { ...prev[studentId], [field]: value } })); };
   const openDetailModal = (studentId, type, currentScores, studentName) => { setModalConfig({ isOpen: true, studentId, type, currentScores, studentName }); };
   const handleModalSave = (newScores) => { const cleanedScores = newScores.filter(s => s !== ''); setEditingGrade(prev => ({ ...prev, [modalConfig.studentId]: { ...prev[modalConfig.studentId], [modalConfig.type]: cleanedScores } })); setModalConfig({ ...modalConfig, isOpen: false }); };
   const handleSaveToDB = async (studentId) => { const gradeData = getStudentGrade(studentId); await saveGrade({ studentId, subjectId: selectedMapel, harian: gradeData.harian, tugas: gradeData.tugas, uts: gradeData.uts, uas: gradeData.uas, kelas: selectedKelas }, gradeData.dbId); const newEditing = {...editingGrade}; delete newEditing[studentId]; setEditingGrade(newEditing); alert("Nilai berhasil disimpan!"); };
-  const exportToCSV = () => { if (filteredStudents.length === 0) return alert("Tidak ada data siswa."); let csv = `Rekap Nilai ${currentMapelData?.nama} - Kelas ${selectedKelas}\nNo,Nama,NISN,Harian,Tugas,UTS,UAS,Akhir\n`; filteredStudents.forEach((s, i) => { const g = getStudentGrade(s.id); const h = calculateAverage(g.harian); const t = calculateAverage(g.tugas); const f = ((parseFloat(h)+parseFloat(t)+parseFloat(g.uts||0)+parseFloat(g.uas||0))/4).toFixed(2); csv += `${i+1},"${s.nama}","${s.nisn}",${h},${t},${g.uts},${g.uas},${f}\n`; }); const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8,"+csv)); link.setAttribute("download", `Rekap_${selectedKelas}.csv`); document.body.appendChild(link); link.click(); };
+  const exportToCSV = () => { if (filteredStudents.length === 0) return alert("Tidak ada data siswa."); let csv = `Rekap Nilai ${currentMapelData?.nama || 'Mapel'} - Kelas ${selectedKelas}\nNo,Nama,NISN,Harian,Tugas,UTS,UAS,Akhir\n`; filteredStudents.forEach((s, i) => { const g = getStudentGrade(s.id); const h = calculateAverage(g.harian); const t = calculateAverage(g.tugas); const f = ((parseFloat(h)+parseFloat(t)+parseFloat(g.uts||0)+parseFloat(g.uas||0))/4).toFixed(2); csv += `${i+1},"${s.nama}","${s.nisn}",${h},${t},${g.uts},${g.uas},${f}\n`; }); const link = document.createElement("a"); link.setAttribute("href", encodeURI("data:text/csv;charset=utf-8,"+csv)); link.setAttribute("download", `Rekap_${selectedKelas}.csv`); document.body.appendChild(link); link.click(); };
 
   return (
     <div className="space-y-6">
       <ScoreDetailModal isOpen={modalConfig.isOpen} onClose={() => setModalConfig({...modalConfig, isOpen: false})} title={`Input ${modalConfig.type === 'harian' ? 'Nilai Harian' : 'Nilai Tugas'} - ${modalConfig.studentName}`} scores={modalConfig.currentScores} onSave={handleModalSave} />
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-end md:items-center no-print"><div className="flex flex-col md:flex-row gap-4 w-full md:w-auto"><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Kelas</label><select value={selectedKelas} onChange={e => setSelectedKelas(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{availableClasses.length > 0 ? availableClasses.map(k => <option key={k} value={k}>{k}</option>) : <option>Belum ada kelas</option>}</select></div><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Mapel</label><select value={selectedMapel} onChange={e => setSelectedMapel(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{subjects.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}</select></div></div><div className="flex gap-2 w-full md:w-auto"><button onClick={exportToCSV} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium"><Download size={16} /> Excel</button><button onClick={() => window.print()} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 text-sm font-medium"><Printer size={16} /> PDF</button></div></div>
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden print-area">
-        <div className="hidden print-header p-8 text-center border-b-2 border-black mb-4"><h1 className="text-2xl font-bold uppercase">{schoolProfile.nama || "NAMA SEKOLAH"}</h1><p>{schoolProfile.alamat || "Alamat Sekolah"}</p><hr className="my-4 border-black"/><h2 className="text-xl font-bold underline mb-4">REKAP NILAI SISWA</h2><div className="flex justify-between text-sm mb-4"><p>Kelas: {selectedKelas}</p><p>Mapel: {currentMapelData?.nama}</p><p>TA: {new Date().getFullYear()}</p></div></div>
+        <div className="hidden print-header p-8 text-center border-b-2 border-black mb-4"><h1 className="text-2xl font-bold uppercase">{schoolName}</h1><p>{schoolAddress}</p><hr className="my-4 border-black"/><h2 className="text-xl font-bold underline mb-4">REKAP NILAI SISWA</h2><div className="flex justify-between text-sm mb-4"><p>Kelas: {selectedKelas}</p><p>Mapel: {currentMapelData?.nama || '-'}</p><p>TA: {new Date().getFullYear()}</p></div></div>
         <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b"><tr><th className="p-4 w-10">No</th><th className="p-4 min-w-[150px]">Nama Siswa</th><th className="p-4 w-28 text-center">Harian</th><th className="p-4 w-28 text-center">Tugas</th><th className="p-4 w-20 text-center">UTS</th><th className="p-4 w-20 text-center">UAS</th><th className="p-4 w-20 text-center">Akhir</th><th className="p-4 w-20 text-center no-print">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map((s, idx) => { const g = getStudentGrade(s.id); const avgH = calculateAverage(g.harian); const avgT = calculateAverage(g.tugas); const final = ((parseFloat(avgH) + parseFloat(avgT) + parseFloat(g.uts||0) + parseFloat(g.uas||0))/4).toFixed(2); const isPassed = parseFloat(final) >= kkm; const unsaved = editingGrade[s.id]; return (<tr key={s.id} className={`transition-colors ${unsaved ? 'bg-yellow-50' : 'hover:bg-slate-50'}`}><td className="p-4 text-center text-slate-500">{idx + 1}</td><td className="p-4"><div className="font-medium text-slate-800">{s.nama}</div><div className="text-xs text-slate-400">{s.nisn}</div></td><td className="p-4 text-center"><div onClick={() => openDetailModal(s.id, 'harian', g.harian, s.nama)} className="border rounded p-2 cursor-pointer hover:bg-blue-50 flex justify-between items-center no-print-border"><span className="font-bold text-slate-700">{avgH}</span><Calculator size={14} className="text-blue-400"/></div><span className="hidden print-only">{avgH}</span></td><td className="p-4 text-center"><div onClick={() => openDetailModal(s.id, 'tugas', g.tugas, s.nama)} className="border rounded p-2 cursor-pointer hover:bg-blue-50 flex justify-between items-center no-print-border"><span className="font-bold text-slate-700">{avgT}</span><Calculator size={14} className="text-blue-400"/></div><span className="hidden print-only">{avgT}</span></td><td className="p-4 text-center"><input type="number" className="w-16 p-1 border rounded text-center outline-none no-print-border" value={g.uts} onChange={e => handleSimpleChange(s.id, 'uts', e.target.value)} placeholder="0"/><span className="hidden print-only">{g.uts}</span></td><td className="p-4 text-center"><input type="number" className="w-16 p-1 border rounded text-center outline-none no-print-border" value={g.uas} onChange={e => handleSimpleChange(s.id, 'uas', e.target.value)} placeholder="0"/><span className="hidden print-only">{g.uas}</span></td><td className="p-4 text-center"><span className={`font-bold px-2 py-1 rounded ${isPassed ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>{final}</span></td><td className="p-4 text-center no-print"><button onClick={() => handleSaveToDB(s.id)} className={`p-2 rounded-lg transition-colors ${unsaved ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md animate-pulse' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}><Save size={18} /></button></td></tr>); })} {filteredStudents.length === 0 && (<tr><td colSpan="8" className="p-8 text-center text-slate-400">Tidak ada siswa</td></tr>)}</tbody></table></div>
       </div>
     </div>
   );
 };
 
+// --- PROFIL SEKOLAH (FIX: KOLOM LENGKAP) ---
 const ProfilSekolah = ({ profile, saveProfile }) => {
     const [formData, setFormData] = useState({ 
-        nama: '', alamat: '', kepsek: '', email: '', website: '', telepon: '', ...profile 
+        nama: '', alamat: '', kepsek: '', nip: '', email: '', website: '', telepon: '', ...profile 
     });
     
     useEffect(() => { setFormData({ ...formData, ...profile }); }, [profile]);
@@ -359,11 +343,29 @@ const ProfilSekolah = ({ profile, saveProfile }) => {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
                 <textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jl. Raya No. 123..." rows="3"/>
             </div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label><input value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Budi Santoso, M.Pd"/></div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nomor Telepon</label><input value={formData.telepon} onChange={e=>setFormData({...formData, telepon:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="021-1234567"/></div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Email Sekolah</label><input value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@sekolah.sch.id"/></div>
-            <div><label className="block text-sm font-medium text-slate-700 mb-1">Website Sekolah</label><input value={formData.website} onChange={e=>setFormData({...formData, website:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="www.sekolah.sch.id"/></div>
-            <div className="md:col-span-2 pt-4"><button type="submit" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">Simpan Perubahan</button></div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label>
+                <input value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Budi Santoso, M.Pd"/>
+            </div>
+             <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">NIP Kepala Sekolah</label>
+                <input value={formData.nip} onChange={e=>setFormData({...formData, nip:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="19800101 200501 1 001"/>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nomor Telepon</label>
+                <input value={formData.telepon} onChange={e=>setFormData({...formData, telepon:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="021-1234567"/>
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Email Sekolah</label>
+                <input value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@sekolah.sch.id"/>
+            </div>
+            <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Website Sekolah</label>
+                <input value={formData.website} onChange={e=>setFormData({...formData, website:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="www.sekolah.sch.id"/>
+            </div>
+            <div className="md:col-span-2 pt-4">
+                <button type="submit" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">Simpan Perubahan</button>
+            </div>
         </form>
       </div>
     );
@@ -381,7 +383,7 @@ export default function App() {
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [grades, setGrades] = useState([]);
-  const [schoolProfile, setSchoolProfile] = useState({ nama: '', alamat: '', kepsek: '', telepon: '', email: '', website: '' });
+  const [schoolProfile, setSchoolProfile] = useState({});
 
   useEffect(() => { const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { setUser(currentUser); if (currentUser) { try { const userRef = doc(db, 'users', currentUser.uid, 'settings', 'profile'); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); setIsPremium(data.isPremium === true); if (!data.phoneNumber) { setNeedsSetup(true); } else { setNeedsSetup(false); } } else { setIsPremium(false); setNeedsSetup(true); } } catch (e) { console.log("Error checking user status", e); } } setLoading(false); }); return () => unsubscribe(); }, []);
   useEffect(() => { if (!user || needsSetup) return; const studentsRef = collection(db, 'users', user.uid, 'students'); const subjectsRef = collection(db, 'users', user.uid, 'subjects'); const gradesRef = collection(db, 'users', user.uid, 'grades'); const profileRef = collection(db, 'users', user.uid, 'schoolProfile'); const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); }); return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); }; }, [user, needsSetup]);
