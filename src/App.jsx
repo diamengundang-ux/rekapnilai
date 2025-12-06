@@ -108,9 +108,8 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
 
     // DATA REKENING ADMIN
     const BANK_ACCOUNTS = [
-        { bank: 'BCA', number: '1234567890', name: 'Admin NILAIKU' },
-        { bank: 'MANDIRI', number: '123000456000', name: 'Admin NILAIKU' },
-        { bank: 'DANA', number: '081234567890', name: 'Admin NILAIKU' },
+        { bank: 'BCA', number: '0461416518', name: 'ARDIKA YUDHA GUNANTARA' },
+        { bank: 'MANDIRI', number: '1550011606632', name: 'ARDIKA YUDHA GUNANTARA' },
     ];
     const ADMIN_WA = "6281234567890"; 
 
