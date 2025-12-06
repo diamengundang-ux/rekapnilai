@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Globe, Phone, Zap
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -140,7 +140,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4"><ArrowLeft size={18}/> Kembali</button>
                             <div className="text-center mb-8">
                                 <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Total Pembayaran</p>
-                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg" onClick={() => handleCopy(selectedPlan.price)}>
+                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg">
                                     {selectedPlan.price}
                                 </div>
                             </div>
@@ -240,12 +240,11 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA ---
+// --- DATA SISWA & OTHER FEATURES (SAMA) ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
   const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
-  
   const handleFileUpload = (e) => {
     if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
@@ -253,25 +252,14 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
     const reader = new FileReader();
     reader.onload = (evt) => {
         try {
-            const bstr = evt.target.result;
-            const wb = XLSX.read(bstr, { type: 'binary' });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            const data = XLSX.utils.sheet_to_json(ws);
-            let count = 0;
-            data.forEach(row => {
-                if(row.Nama && row.Kelas) {
-                    addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' });
-                    count++;
-                }
-            });
+            const bstr = evt.target.result; const wb = XLSX.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws);
+            let count = 0; data.forEach(row => { if(row.Nama && row.Kelas) { addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' }); count++; } });
             alert(`Berhasil mengimpor ${count} siswa!`);
         } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
     };
     reader.readAsBinaryString(file);
   };
-
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
-
   return (
     <div className="space-y-6">
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
@@ -291,7 +279,6 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   );
 };
 
-// --- MATA PELAJARAN ---
 const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     const [newMapel, setNewMapel] = useState('');
     const [newKKM, setNewKKM] = useState(75);
@@ -304,7 +291,6 @@ const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     )
 }
 
-// --- SCORE DETAIL MODAL ---
 const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     const [localScores, setLocalScores] = useState([]);
     useEffect(() => { if (Array.isArray(scores)) { setLocalScores([...scores]); } else if (scores) { setLocalScores([scores]); } else { setLocalScores([]); } }, [scores, isOpen]);
@@ -341,7 +327,7 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
       <ScoreDetailModal isOpen={modalConfig.isOpen} onClose={() => setModalConfig({...modalConfig, isOpen: false})} title={`Input ${modalConfig.type === 'harian' ? 'Nilai Harian' : 'Nilai Tugas'} - ${modalConfig.studentName}`} scores={modalConfig.currentScores} onSave={handleModalSave} />
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-end md:items-center no-print"><div className="flex flex-col md:flex-row gap-4 w-full md:w-auto"><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Kelas</label><select value={selectedKelas} onChange={e => setSelectedKelas(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{availableClasses.length > 0 ? availableClasses.map(k => <option key={k} value={k}>{k}</option>) : <option>Belum ada kelas</option>}</select></div><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Mapel</label><select value={selectedMapel} onChange={e => setSelectedMapel(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{subjects.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}</select></div></div><div className="flex gap-2 w-full md:w-auto"><button onClick={exportToCSV} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium"><Download size={16} /> Excel</button><button onClick={() => window.print()} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 text-sm font-medium"><Printer size={16} /> PDF</button></div></div>
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden print-area">
-        <div className="hidden print-header p-8 text-center border-b-2 border-black mb-4"><h1 className="text-2xl font-bold uppercase">{schoolProfile.nama}</h1><p>{schoolProfile.alamat}</p><hr className="my-4 border-black"/><h2 className="text-xl font-bold underline mb-4">REKAP NILAI SISWA</h2><div className="flex justify-between text-sm mb-4"><p>Kelas: {selectedKelas}</p><p>Mapel: {currentMapelData?.nama}</p><p>TA: {new Date().getFullYear()}</p></div></div>
+        <div className="hidden print-header p-8 text-center border-b-2 border-black mb-4"><h1 className="text-2xl font-bold uppercase">{schoolProfile.nama || "NAMA SEKOLAH"}</h1><p>{schoolProfile.alamat || "Alamat Sekolah"}</p><hr className="my-4 border-black"/><h2 className="text-xl font-bold underline mb-4">REKAP NILAI SISWA</h2><div className="flex justify-between text-sm mb-4"><p>Kelas: {selectedKelas}</p><p>Mapel: {currentMapelData?.nama}</p><p>TA: {new Date().getFullYear()}</p></div></div>
         <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b"><tr><th className="p-4 w-10">No</th><th className="p-4 min-w-[150px]">Nama Siswa</th><th className="p-4 w-28 text-center">Harian</th><th className="p-4 w-28 text-center">Tugas</th><th className="p-4 w-20 text-center">UTS</th><th className="p-4 w-20 text-center">UAS</th><th className="p-4 w-20 text-center">Akhir</th><th className="p-4 w-20 text-center no-print">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map((s, idx) => { const g = getStudentGrade(s.id); const avgH = calculateAverage(g.harian); const avgT = calculateAverage(g.tugas); const final = ((parseFloat(avgH) + parseFloat(avgT) + parseFloat(g.uts||0) + parseFloat(g.uas||0))/4).toFixed(2); const isPassed = parseFloat(final) >= kkm; const unsaved = editingGrade[s.id]; return (<tr key={s.id} className={`transition-colors ${unsaved ? 'bg-yellow-50' : 'hover:bg-slate-50'}`}><td className="p-4 text-center text-slate-500">{idx + 1}</td><td className="p-4"><div className="font-medium text-slate-800">{s.nama}</div><div className="text-xs text-slate-400">{s.nisn}</div></td><td className="p-4 text-center"><div onClick={() => openDetailModal(s.id, 'harian', g.harian, s.nama)} className="border rounded p-2 cursor-pointer hover:bg-blue-50 flex justify-between items-center no-print-border"><span className="font-bold text-slate-700">{avgH}</span><Calculator size={14} className="text-blue-400"/></div><span className="hidden print-only">{avgH}</span></td><td className="p-4 text-center"><div onClick={() => openDetailModal(s.id, 'tugas', g.tugas, s.nama)} className="border rounded p-2 cursor-pointer hover:bg-blue-50 flex justify-between items-center no-print-border"><span className="font-bold text-slate-700">{avgT}</span><Calculator size={14} className="text-blue-400"/></div><span className="hidden print-only">{avgT}</span></td><td className="p-4 text-center"><input type="number" className="w-16 p-1 border rounded text-center outline-none no-print-border" value={g.uts} onChange={e => handleSimpleChange(s.id, 'uts', e.target.value)} placeholder="0"/><span className="hidden print-only">{g.uts}</span></td><td className="p-4 text-center"><input type="number" className="w-16 p-1 border rounded text-center outline-none no-print-border" value={g.uas} onChange={e => handleSimpleChange(s.id, 'uas', e.target.value)} placeholder="0"/><span className="hidden print-only">{g.uas}</span></td><td className="p-4 text-center"><span className={`font-bold px-2 py-1 rounded ${isPassed ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>{final}</span></td><td className="p-4 text-center no-print"><button onClick={() => handleSaveToDB(s.id)} className={`p-2 rounded-lg transition-colors ${unsaved ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md animate-pulse' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}><Save size={18} /></button></td></tr>); })} {filteredStudents.length === 0 && (<tr><td colSpan="8" className="p-8 text-center text-slate-400">Tidak ada siswa</td></tr>)}</tbody></table></div>
       </div>
     </div>
@@ -349,11 +335,37 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
 };
 
 const ProfilSekolah = ({ profile, saveProfile }) => {
-    const [formData, setFormData] = useState(profile);
-    useEffect(() => { setFormData(profile); }, [profile]);
-    const handleSubmit = (e) => { e.preventDefault(); saveProfile(formData); alert("Disimpan!"); };
+    const [formData, setFormData] = useState({ 
+        nama: '', alamat: '', kepsek: '', email: '', website: '', telepon: '', ...profile 
+    });
+    
+    useEffect(() => { setFormData({ ...formData, ...profile }); }, [profile]);
+
+    const handleSubmit = (e) => { 
+        e.preventDefault(); 
+        saveProfile(formData); 
+        alert("Profil Sekolah Berhasil Disimpan!"); 
+    };
+
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100"><h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><School className="text-blue-600"/> Edit Profil Sekolah</h2><form onSubmit={handleSubmit} className="space-y-4"><input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="w-full border p-2 rounded" placeholder="Nama Sekolah"/><textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2 rounded" placeholder="Alamat"/><button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded w-full font-bold">Simpan</button></form></div>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2"><School className="text-blue-600"/> Edit Profil Sekolah</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nama Sekolah</label>
+                <input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: SDN 01 Pagi"/>
+            </div>
+            <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
+                <textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jl. Raya No. 123..." rows="3"/>
+            </div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label><input value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Budi Santoso, M.Pd"/></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nomor Telepon</label><input value={formData.telepon} onChange={e=>setFormData({...formData, telepon:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="021-1234567"/></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Email Sekolah</label><input value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@sekolah.sch.id"/></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Website Sekolah</label><input value={formData.website} onChange={e=>setFormData({...formData, website:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="www.sekolah.sch.id"/></div>
+            <div className="md:col-span-2 pt-4"><button type="submit" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">Simpan Perubahan</button></div>
+        </form>
+      </div>
     );
 };
 
@@ -369,7 +381,7 @@ export default function App() {
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [grades, setGrades] = useState([]);
-  const [schoolProfile, setSchoolProfile] = useState({ nama: 'SDN Contoh', alamat: 'Jl. Contoh', npsn: '-', kodepos: '-', kepsek: '-', nip: '-' });
+  const [schoolProfile, setSchoolProfile] = useState({ nama: '', alamat: '', kepsek: '', telepon: '', email: '', website: '' });
 
   useEffect(() => { const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { setUser(currentUser); if (currentUser) { try { const userRef = doc(db, 'users', currentUser.uid, 'settings', 'profile'); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); setIsPremium(data.isPremium === true); if (!data.phoneNumber) { setNeedsSetup(true); } else { setNeedsSetup(false); } } else { setIsPremium(false); setNeedsSetup(true); } } catch (e) { console.log("Error checking user status", e); } } setLoading(false); }); return () => unsubscribe(); }, []);
   useEffect(() => { if (!user || needsSetup) return; const studentsRef = collection(db, 'users', user.uid, 'students'); const subjectsRef = collection(db, 'users', user.uid, 'subjects'); const gradesRef = collection(db, 'users', user.uid, 'grades'); const profileRef = collection(db, 'users', user.uid, 'schoolProfile'); const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); }); return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); }; }, [user, needsSetup]);
@@ -401,7 +413,10 @@ export default function App() {
   if (!user) return <LoginScreen />;
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
 
-  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} deleteSubject={deleteSubject} />; case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} />; case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />; default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>; } };
+  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} deleteSubject={deleteSubject} />; 
+      // FIX HERE: Pass schoolProfile prop to InputNilai
+      case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} schoolProfile={schoolProfile} />; 
+      case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />; default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>; } };
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900 overflow-hidden">
