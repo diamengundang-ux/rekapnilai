@@ -74,7 +74,7 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 <Crown size={28} className="text-yellow-300" />
                             </div>
                             <h2 className="text-2xl font-bold mb-2">Upgrade ke Premium</h2>
-                            <p className="opacity-90 mb-6 text-sm">Buka potensi penuh aplikasi SINILAI untuk kemudahan administrasi Anda.</p>
+                            <p className="opacity-90 mb-6 text-sm">Buka potensi penuh aplikasi NILAIKU untuk kemudahan administrasi Anda.</p>
                             <ul className="space-y-3 text-sm">
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Akses Menu Analisis Grafik</span></li>
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Rapor Lengkap (PDF)</span></li>
@@ -82,7 +82,7 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Prioritas Support 24/7</span></li>
                             </ul>
                         </div>
-                        <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 SINILAI - Partner Guru Olahraga</p>
+                        <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU - Partner Guru Hebat Indonesia</p>
                     </div>
                     <div className="p-6 md:p-8">
                         <h3 className="text-lg font-bold text-center mb-6 text-slate-800">Pilih Paket Terbaikmu</h3>
@@ -148,8 +148,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div>
-          <h1 className="text-2xl font-bold text-slate-800">SINILAI - PJOK</h1>
-          <p className="text-slate-500">Sistem Rekap Nilai Digital</p>
+          <h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1>
+          <p className="text-slate-500">Sistem Aplikasi Nilai Digital</p>
         </div>
         <button onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 py-3 rounded-lg font-bold flex justify-center gap-2 hover:bg-slate-50 transition-colors">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"/> 
@@ -539,7 +539,7 @@ export default function App() {
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shadow-xl z-10">
         <div className="p-6 flex items-center gap-3 border-b border-slate-100">
             <div className="bg-blue-600 text-white p-2 rounded-lg"><GraduationCap size={24} /></div>
-            <div><h1 className="font-bold text-lg text-slate-800 tracking-tight">SINILAI</h1><p className="text-xs text-slate-500">Sistem Rekap PJOK</p></div>
+            <div><h1 className="font-bold text-lg text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-500">Sistem Aplikasi Nilai Digital</p></div>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
@@ -567,7 +567,7 @@ export default function App() {
       <main className="flex-1 overflow-y-auto relative h-full w-full">
         {/* Mobile Header */}
         <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20 w-full">
-            <div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>SINILAI</div>
+            <div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>NILAIKU</div>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 bg-slate-50 rounded-lg">{isMobileMenuOpen ? <X /> : <Menu />}</button>
         </div>
         
