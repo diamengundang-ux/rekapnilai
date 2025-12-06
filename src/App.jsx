@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Globe, Phone
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Globe, Phone, Zap
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -22,9 +22,9 @@ import {
 import { getAnalytics } from "firebase/analytics";
 
 // --- PENTING UNTUK GITHUB ---
-// Hapus tanda // di depan baris import di bawah ini agar Excel jalan:
+// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
 // import * as XLSX from 'xlsx'; 
-const XLSX = null; 
+const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -140,7 +140,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4"><ArrowLeft size={18}/> Kembali</button>
                             <div className="text-center mb-8">
                                 <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Total Pembayaran</p>
-                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg relative group cursor-pointer active:scale-95 transition-transform" onClick={() => handleCopy(selectedPlan.price)}>
+                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg" onClick={() => handleCopy(selectedPlan.price)}>
                                     {selectedPlan.price}
                                 </div>
                             </div>
@@ -240,7 +240,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA (RESPONSIVE FORM) ---
+// --- DATA SISWA & OTHER FEATURES (SAMA) ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -279,60 +279,18 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   );
 };
 
-// --- MATA PELAJARAN (DENGAN KKM) ---
 const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     const [newMapel, setNewMapel] = useState('');
-    const [newKKM, setNewKKM] = useState(75); // Default KKM 75
-
-    const handleSubmit = (e) => { 
-        e.preventDefault(); 
-        addSubject({ nama: newMapel, kkm: parseInt(newKKM) }); 
-        setNewMapel(''); 
-        setNewKKM(75); 
-    };
-
+    const [newKKM, setNewKKM] = useState(75);
+    const handleSubmit = (e) => { e.preventDefault(); addSubject({ nama: newMapel, kkm: parseInt(newKKM) }); setNewMapel(''); setNewKKM(75); };
     return (
         <div className="space-y-6">
-            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 className="font-bold text-lg mb-4 text-slate-800">Tambah Mapel</h3>
-                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
-                    <input 
-                        value={newMapel} 
-                        onChange={e=>setNewMapel(e.target.value)} 
-                        placeholder="Nama Mata Pelajaran" 
-                        className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" 
-                        required
-                    />
-                    <input 
-                        type="number" 
-                        value={newKKM} 
-                        onChange={e=>setNewKKM(e.target.value)} 
-                        placeholder="KKM" 
-                        className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-32" 
-                        required
-                    />
-                    <button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">Simpan</button>
-                </form>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-right">Aksi</th></tr></thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {subjects.map(s => (
-                            <tr key={s.id} className="hover:bg-slate-50">
-                                <td className="p-4 font-medium">{s.nama}</td>
-                                <td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td>
-                                <td className="p-4 text-right"><button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100"><h3 className="font-bold text-lg mb-4 text-slate-800">Tambah Mapel</h3><form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4"><input value={newMapel} onChange={e=>setNewMapel(e.target.value)} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/><input type="number" value={newKKM} onChange={e=>setNewKKM(e.target.value)} placeholder="KKM" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-32" required/><button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">Simpan</button></form></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-right">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-right"><button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button></td></tr>)}</tbody></table></div>
         </div>
     )
 }
 
-// --- SCORE DETAIL MODAL ---
 const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     const [localScores, setLocalScores] = useState([]);
     useEffect(() => { if (Array.isArray(scores)) { setLocalScores([...scores]); } else if (scores) { setLocalScores([scores]); } else { setLocalScores([]); } }, [scores, isOpen]);
@@ -342,17 +300,7 @@ const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     if (!isOpen) return null;
     const average = calculateAverage(localScores);
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden my-auto">
-                <div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold text-lg">{title}</h3><button onClick={onClose} className="hover:bg-blue-700 p-1 rounded"><X size={20}/></button></div>
-                <div className="p-6 max-h-[60vh] overflow-y-auto">
-                    <div className="flex justify-between items-center mb-4"><span className="text-slate-500 text-sm">Daftar Nilai Masuk</span><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Rata-rata: {average}</span></div>
-                    <div className="space-y-3">{localScores.map((score, idx) => (<div key={idx} className="flex gap-2 items-center"><span className="text-slate-400 w-6 text-sm font-mono">{idx + 1}.</span><input type="number" className="flex-1 border p-2 rounded outline-none" placeholder="0-100" value={score} onChange={(e) => updateScore(idx, e.target.value)} autoFocus={idx === localScores.length - 1}/><button onClick={() => removeScore(idx)} className="text-red-400 hover:text-red-600"><XCircle size={20}/></button></div>))}</div>
-                    <button onClick={addScore} className="mt-4 w-full py-2 border-2 border-dashed border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 flex justify-center items-center gap-2 font-medium"><Plus size={16}/> Tambah Nilai</button>
-                </div>
-                <div className="p-4 border-t bg-slate-50 flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg">Batal</button><button onClick={() => onSave(localScores)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">Simpan Nilai</button></div>
-            </div>
-        </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto"><div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden my-auto"><div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold text-lg">{title}</h3><button onClick={onClose} className="hover:bg-blue-700 p-1 rounded"><X size={20}/></button></div><div className="p-6 max-h-[60vh] overflow-y-auto"><div className="flex justify-between items-center mb-4"><span className="text-slate-500 text-sm">Daftar Nilai Masuk</span><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Rata-rata: {average}</span></div><div className="space-y-3">{localScores.map((score, idx) => (<div key={idx} className="flex gap-2 items-center"><span className="text-slate-400 w-6 text-sm font-mono">{idx + 1}.</span><input type="number" className="flex-1 border p-2 rounded outline-none" placeholder="0-100" value={score} onChange={(e) => updateScore(idx, e.target.value)} autoFocus={idx === localScores.length - 1}/><button onClick={() => removeScore(idx)} className="text-red-400 hover:text-red-600"><XCircle size={20}/></button></div>))}</div><button onClick={addScore} className="mt-4 w-full py-2 border-2 border-dashed border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 flex justify-center items-center gap-2 font-medium"><Plus size={16}/> Tambah Nilai</button></div><div className="p-4 border-t bg-slate-50 flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg">Batal</button><button onClick={() => onSave(localScores)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">Simpan Nilai</button></div></div></div>
     );
 };
 
@@ -386,7 +334,6 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
   );
 };
 
-// --- PROFIL SEKOLAH (LENGKAP DENGAN INPUT TAMBAHAN) ---
 const ProfilSekolah = ({ profile, saveProfile }) => {
     const [formData, setFormData] = useState({ 
         nama: '', alamat: '', kepsek: '', email: '', website: '', telepon: '', ...profile 
@@ -412,28 +359,11 @@ const ProfilSekolah = ({ profile, saveProfile }) => {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
                 <textarea value={formData.alamat} onChange={e=>setFormData({...formData, alamat:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jl. Raya No. 123..." rows="3"/>
             </div>
-            
-            {/* Input Tambahan */}
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label>
-                <input value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Budi Santoso, M.Pd"/>
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nomor Telepon</label>
-                <input value={formData.telepon} onChange={e=>setFormData({...formData, telepon:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="021-1234567"/>
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email Sekolah</label>
-                <input value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@sekolah.sch.id"/>
-            </div>
-            <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Website Sekolah</label>
-                <input value={formData.website} onChange={e=>setFormData({...formData, website:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="www.sekolah.sch.id"/>
-            </div>
-
-            <div className="md:col-span-2 pt-4">
-                <button type="submit" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">Simpan Perubahan</button>
-            </div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label><input value={formData.kepsek} onChange={e=>setFormData({...formData, kepsek:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="Budi Santoso, M.Pd"/></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nomor Telepon</label><input value={formData.telepon} onChange={e=>setFormData({...formData, telepon:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="021-1234567"/></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Email Sekolah</label><input value={formData.email} onChange={e=>setFormData({...formData, email:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="info@sekolah.sch.id"/></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Website Sekolah</label><input value={formData.website} onChange={e=>setFormData({...formData, website:e.target.value})} className="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" placeholder="www.sekolah.sch.id"/></div>
+            <div className="md:col-span-2 pt-4"><button type="submit" className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg">Simpan Perubahan</button></div>
         </form>
       </div>
     );
@@ -468,6 +398,17 @@ export default function App() {
   const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
   const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
   
+  // DEV MODE (SIMULASI ADMIN)
+  const toggleDevPremium = async () => {
+    if (!user) return;
+    const newStatus = !isPremium;
+    try {
+        await setDoc(doc(db, 'users', user.uid, 'settings', 'profile'), { isPremium: newStatus }, { merge: true });
+        setIsPremium(newStatus);
+        alert(`Status Akun: ${newStatus ? "PREMIUM" : "FREE"}`);
+    } catch (error) { console.error("Dev Error:", error); }
+  };
+
   if (loading) return <div className="h-screen flex items-center justify-center text-blue-600">Memuat...</div>;
   if (!user) return <LoginScreen />;
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
@@ -479,16 +420,11 @@ export default function App() {
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} userEmail={user.email} />
       {isMobileMenuOpen && (<div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>)}
       
-      {/* Sidebar (Desktop & Mobile Drawer) */}
       <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
-            <div className="flex items-center gap-3">
-                <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div>
-            </div>
+            <div className="flex items-center gap-3"><div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div><div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div></div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
-        
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             <p className="text-xs font-bold text-slate-400 px-4 mb-2 mt-2 uppercase tracking-wider">Menu Utama</p>
             {menuItems.map((item) => {
@@ -502,7 +438,6 @@ export default function App() {
                 )
             })}
         </nav>
-
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             {!isPremium && (
                 <div onClick={() => setShowUpgradeModal(true)} className="mb-3 bg-gradient-to-r from-orange-400 to-pink-500 p-4 rounded-xl text-white cursor-pointer hover:shadow-lg transition-all relative overflow-hidden group">
@@ -510,10 +445,17 @@ export default function App() {
                     <Star className="absolute -right-3 -bottom-3 text-white opacity-20 w-20 h-20 rotate-12 group-hover:rotate-45 transition-transform duration-500" />
                 </div>
             )}
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100"><LogOut size={18}/> Keluar Aplikasi</button>
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100 mb-2"><LogOut size={18}/> Keluar Aplikasi</button>
+            
+            {/* TOMBOL SIMULASI ADMIN (Hapus ini jika sudah tidak butuh testing) */}
+            <div className="pt-2 border-t border-slate-200">
+                <p className="text-[10px] text-center text-slate-400 mb-1 uppercase font-bold">Mode Developer</p>
+                <button onClick={toggleDevPremium} className={`w-full py-1.5 rounded text-xs font-bold border ${isPremium ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
+                    {isPremium ? 'Nonaktifkan Premium' : 'Aktifkan Premium'}
+                </button>
+            </div>
         </div>
       </aside>
-
       <main className="flex-1 overflow-y-auto relative h-full w-full bg-slate-50">
         <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-30">
             <div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>NILAIKU</div>
