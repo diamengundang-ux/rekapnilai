@@ -21,9 +21,12 @@ import {
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
 
-// --- PENTING UNTUK GITHUB ---
-// Hapus tanda komentar (//) pada baris di bawah ini saat di GitHub agar fitur Excel jalan:
-// import * as XLSX from 'xlsx';
+// --- INSTRUKSI KHUSUS UNTUK DEPLOY ---
+// Agar fitur Import Excel berjalan di Vercel/GitHub:
+// 1. HAPUS tanda komentar (//) pada baris import di bawah ini:
+ import * as XLSX from 'xlsx';
+// 2. HAPUS baris 'const XLSX = null;' di bawah ini:
+const XLSX = null; 
 
 // --- KONEKSI KE FIREBASE PRIBADI BAPAK ---
 const firebaseConfig = {
@@ -65,7 +68,6 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                 </button>
                 
                 <div className="grid md:grid-cols-2">
-                    {/* Sisi Kiri: Gambar/Benefit */}
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 md:p-8 text-white flex flex-col justify-between">
                         <div>
                             <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
@@ -73,7 +75,6 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                             </div>
                             <h2 className="text-2xl font-bold mb-2">Upgrade ke Premium</h2>
                             <p className="opacity-90 mb-6 text-sm">Buka potensi penuh aplikasi SINILAI untuk kemudahan administrasi Anda.</p>
-                            
                             <ul className="space-y-3 text-sm">
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Akses Menu Analisis Grafik</span></li>
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Rapor Lengkap (PDF)</span></li>
@@ -83,13 +84,9 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                         </div>
                         <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 SINILAI - Partner Guru Olahraga</p>
                     </div>
-
-                    {/* Sisi Kanan: Pilihan Harga */}
                     <div className="p-6 md:p-8">
                         <h3 className="text-lg font-bold text-center mb-6 text-slate-800">Pilih Paket Terbaikmu</h3>
-                        
                         <div className="space-y-4">
-                            {/* Paket 1 */}
                             <div className="border border-slate-200 rounded-xl p-4 hover:border-blue-500 cursor-pointer transition-all hover:shadow-md group">
                                 <div className="flex justify-between items-center mb-2">
                                     <h4 className="font-bold text-slate-700">Paket Semester</h4>
@@ -101,8 +98,6 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 </div>
                                 <p className="text-xs text-slate-500">Cocok untuk mencoba fitur premium selama satu semester.</p>
                             </div>
-
-                            {/* Paket 2 */}
                             <div className="border-2 border-green-500 bg-green-50/30 rounded-xl p-4 cursor-pointer relative shadow-sm">
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
                                     Hemat 50%
@@ -117,7 +112,6 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 <p className="text-xs text-slate-500">Paling hemat! Gunakan full fitur sepanjang tahun ajaran.</p>
                             </div>
                         </div>
-
                         <button className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold mt-6 hover:bg-slate-800 transition-all shadow-lg transform active:scale-95 text-sm md:text-base">
                             Beli Sekarang via WhatsApp
                         </button>
@@ -139,7 +133,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const handleGoogleLogin = async () => {
       setError(''); setLoading(true); const provider = new GoogleAuthProvider();
       try { await signInWithPopup(auth, provider); } 
-      catch (err) { console.error(err); setError("Gagal login Google."); } 
+      catch (err) { console.error(err); setError("Gagal login Google. Periksa koneksi atau konfigurasi Firebase."); } 
       finally { setLoading(false); }
   };
 
@@ -228,35 +222,35 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
   
   const handleFileUpload = (e) => {
-    // --- KODE SIMULASI UNTUK PREVIEW ---
-    // Di GitHub, HAPUS blok ini dan UNCOMMENT blok di bawahnya.
-    if (typeof XLSX === 'undefined') {
-        alert("⚠️ MODE SIMULASI: Library 'xlsx' belum aktif di preview ini.\n\nSaya akan menambahkan siswa contoh 'Budi Santoso' untuk demonstrasi.\n\nPastikan Anda meng-uncomment baris 'import * as XLSX...' di kode saat deploy ke Vercel agar fitur ini bekerja dengan file Excel asli.");
-        addStudent({ nama: 'Budi Santoso (Simulasi)', nisn: '12345678', kelas: '1A', gender: 'L' });
+    // PROTEKSI: Cek apakah library XLSX tersedia
+    if (!XLSX) {
+        alert("⚠️ Library Excel belum diaktifkan.\n\nUntuk mengaktifkan: Buka kode 'src/App.jsx', lalu uncomment baris 'import * as XLSX...' di bagian atas file.");
         return;
     }
 
-    // --- KODE ASLI (Uncomment ini di GitHub) ---
-    /*
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
-        const bstr = evt.target.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws);
-        let count = 0;
-        data.forEach(row => {
-            if(row.Nama && row.Kelas) {
-                addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' });
-                count++;
-            }
-        });
-        alert(`Berhasil mengimpor ${count} siswa!`);
+        try {
+            const bstr = evt.target.result;
+            const wb = XLSX.read(bstr, { type: 'binary' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(ws);
+            let count = 0;
+            data.forEach(row => {
+                if(row.Nama && row.Kelas) {
+                    addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' });
+                    count++;
+                }
+            });
+            alert(`Berhasil mengimpor ${count} siswa!`);
+        } catch (error) {
+            console.error("Excel Error:", error);
+            alert("Gagal membaca file Excel. Pastikan formatnya benar.");
+        }
     };
     reader.readAsBinaryString(file);
-    */
   };
 
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
