@@ -20,8 +20,12 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-// import * as XLSX from 'xlsx'; // Hapus tanda // di sini saat deploy
-const XLSX = null; // Hapus baris ini saat deploy
+
+// --- PENTING: PENGATURAN EXCEL ---
+// Hapus tanda // di depan baris import di bawah ini agar Excel jalan:
+// import * as XLSX from 'xlsx'; 
+// Hapus baris const XLSX = null di bawah ini jika import di atas sudah aktif.
+const XLSX = null; 
 
 // --- KONEKSI KE FIREBASE PRIBADI BAPAK ---
 const firebaseConfig = {
@@ -51,43 +55,40 @@ const calculateAverage = (value) => {
     return parseFloat(value) || 0;
 };
 
-// --- COMPONENT: UPGRADE MODAL (POPUP BAYAR) ---
+// --- COMPONENT: UPGRADE MODAL ---
 const UpgradeModal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in backdrop-blur-sm z-[60]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto z-[100]">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden relative my-auto">
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors z-10">
                     <X size={20} className="text-slate-500" />
                 </button>
                 
                 <div className="grid md:grid-cols-2">
-                    {/* Sisi Kiri: Gambar/Benefit */}
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 md:p-8 text-white flex flex-col justify-between">
                         <div>
                             <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                                 <Crown size={28} className="text-yellow-300" />
                             </div>
                             <h2 className="text-2xl font-bold mb-2">Upgrade ke Premium</h2>
-                            <p className="opacity-90 mb-6 text-sm">Buka potensi penuh aplikasi NILAIKU untuk kemudahan administrasi Anda.</p>
+                            <p className="opacity-90 mb-6 text-sm">Fitur "Input Nilai" adalah fitur Premium. Upgrade sekarang untuk mulai merekap nilai siswa.</p>
                             
                             <ul className="space-y-3 text-sm">
-                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Akses Menu Analisis Grafik</span></li>
-                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Rapor Lengkap (PDF)</span></li>
-                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Backup Data Otomatis</span></li>
-                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Prioritas Support 24/7</span></li>
+                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Buka Menu Input Nilai</span></li>
+                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Hitung Rata-rata Otomatis</span></li>
+                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Laporan ke Excel</span></li>
+                                <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Simpan Data Tanpa Batas</span></li>
                             </ul>
                         </div>
                         <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU - Sistem Aplikasi Nilai Digital</p>
                     </div>
 
-                    {/* Sisi Kanan: Pilihan Harga */}
                     <div className="p-6 md:p-8">
                         <h3 className="text-lg font-bold text-center mb-6 text-slate-800">Pilih Paket Terbaikmu</h3>
                         
                         <div className="space-y-4">
-                            {/* Paket 1 */}
                             <div className="border border-slate-200 rounded-xl p-4 hover:border-blue-500 cursor-pointer transition-all hover:shadow-md group">
                                 <div className="flex justify-between items-center mb-2">
                                     <h4 className="font-bold text-slate-700">Paket Semester</h4>
@@ -100,7 +101,6 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 <p className="text-xs text-slate-500">Cocok untuk mencoba fitur premium selama satu semester.</p>
                             </div>
 
-                            {/* Paket 2 */}
                             <div className="border-2 border-green-500 bg-green-50/30 rounded-xl p-4 cursor-pointer relative shadow-sm">
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
                                     Hemat 50%
@@ -177,6 +177,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   const totalSiswa = students.length;
   const totalMapel = subjects.length;
   const totalNilai = grades.length;
+  
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
@@ -187,15 +188,29 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
                 <span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>
                     {isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}
                 </span>
-                {!isPremium && (<button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">Upgrade Sekarang 🚀</button>)}
+                {!isPremium && (
+                    <button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">
+                        Upgrade Sekarang 🚀
+                    </button>
+                )}
             </div>
         </div>
         <GraduationCap className="absolute -right-6 -bottom-6 text-white opacity-10 w-32 h-32 md:w-48 md:h-48" />
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-green-100 text-green-600 rounded-lg"><BookOpen size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Mata Pelajaran</p><h3 className="text-2xl font-bold text-slate-800">{totalMapel}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div></div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+          <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div>
+          <div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+          <div className="p-3 bg-green-100 text-green-600 rounded-lg"><BookOpen size={24} /></div>
+          <div><p className="text-xs text-slate-500 uppercase font-bold">Mata Pelajaran</p><h3 className="text-2xl font-bold text-slate-800">{totalMapel}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+          <div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div>
+          <div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div>
+        </div>
       </div>
     </div>
   );
@@ -435,14 +450,13 @@ export default function App() {
   const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
   const handleLogout = async () => { await signOut(auth); };
 
+  // MENU YANG DITAMPILKAN (SESUAI PERMINTAAN: GRAFIK & RAPOR DIHAPUS)
   const menuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false },
       { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false },
       { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false },
       { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false },
-      { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: false },
-      { id: 'analisis', label: 'Analisis Grafik', icon: Calculator, premium: true }, 
-      { id: 'rapor', label: 'Cetak Rapor Lengkap', icon: Printer, premium: true }, 
+      { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true }, // INI MENU YANG DIKUNCI
   ];
 
   const handleMenuClick = (item) => {
