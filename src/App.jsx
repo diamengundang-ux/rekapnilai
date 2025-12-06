@@ -110,12 +110,10 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                     <div>
                         <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4"><Crown size={28} className="text-yellow-300" /></div>
                         <h2 className="text-2xl font-bold mb-2">Upgrade Premium</h2>
-                        <p className="opacity-90 mb-6 text-sm">Fitur "Input Nilai" adalah fitur Premium. Upgrade sekarang untuk mulai merekap nilai siswa.</p>
+                        <p className="opacity-90 mb-6 text-sm">Akses fitur lengkap untuk produktivitas maksimal.</p>
                         <ul className="space-y-3 text-sm">
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Buka Menu Input Nilai</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Hitung Rata-rata Otomatis</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Laporan ke Excel</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Simpan Data Tanpa Batas</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Input Nilai Unlimited</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Excel & PDF</span></li>
                         </ul>
                     </div>
                     <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU</p>
@@ -142,7 +140,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4"><ArrowLeft size={18}/> Kembali</button>
                             <div className="text-center mb-8">
                                 <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Total Pembayaran</p>
-                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg">
+                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg text-center">
                                     {selectedPlan.price}
                                 </div>
                             </div>
@@ -242,7 +240,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA (RESPONSIVE FORM) ---
+// --- DATA SISWA ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -437,17 +435,6 @@ export default function App() {
   const saveGrade = async (data, gradeId) => { if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); };
   const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
   const handleLogout = async () => { await signOut(auth); };
-  
-  // DEV MODE (SIMULASI ADMIN)
-  const toggleDevPremium = async () => {
-    if (!user) return;
-    const newStatus = !isPremium;
-    try {
-        await setDoc(doc(db, 'users', user.uid, 'settings', 'profile'), { isPremium: newStatus }, { merge: true });
-        setIsPremium(newStatus);
-        alert(`Status Akun: ${newStatus ? "PREMIUM" : "FREE"}`);
-    } catch (error) { console.error("Dev Error:", error); }
-  };
 
   const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
   const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
@@ -476,7 +463,7 @@ export default function App() {
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.1 (Update)</p></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
