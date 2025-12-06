@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -20,9 +20,14 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-// Removed 'import * as XLSX from 'xlsx';' to fix build error. We will load it via CDN.
 
-// --- KONEKSI KE FIREBASE PRIBADI BAPAK ---
+// --- KODE PREVIEW ---
+// Untuk preview di sini, kita nonaktifkan XLSX.
+// DI GITHUB: Hapus komentar pada baris import di bawah dan hapus baris 'const XLSX = null;'
+// import * as XLSX from 'xlsx'; 
+const XLSX = null;
+
+// --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyC2fMCm9mLc_I0qsCctOwlw8Rn9wyHoWSc",
   authDomain: "nilai-siswa-1e92c.firebaseapp.com",
@@ -50,165 +55,124 @@ const calculateAverage = (value) => {
     return parseFloat(value) || 0;
 };
 
-// --- COMPONENT: SETUP PROFILE MODAL (WAJIB ISI WA) ---
+// --- COMPONENT: SETUP PROFILE MODAL ---
 const SetupProfileModal = ({ user, onComplete }) => {
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSave = async () => {
-        if (!phone || phone.length < 10) {
-            alert("Mohon masukkan nomor WhatsApp yang valid.");
-            return;
-        }
+        if (!phone || phone.length < 10) { alert("Mohon masukkan nomor WhatsApp yang valid."); return; }
         setLoading(true);
         try {
             await setDoc(doc(db, 'users', user.uid, 'settings', 'profile'), {
-                phoneNumber: phone,
-                email: user.email,
-                displayName: user.displayName || '',
-                isPremium: false, // Default Free
-                updatedAt: serverTimestamp()
+                phoneNumber: phone, email: user.email, displayName: user.displayName || '', isPremium: false, updatedAt: serverTimestamp()
             }, { merge: true });
             onComplete();
-        } catch (error) {
-            console.error("Error saving profile:", error);
-            alert("Gagal menyimpan data. Silakan coba lagi.");
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) { console.error("Error:", error); alert("Gagal menyimpan data."); } finally { setLoading(false); }
     };
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 animate-fade-in backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center relative overflow-hidden">
-                <div className="mx-auto bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mb-6">
-                    <div className="bg-black text-green-400 rounded-full p-2"><Smile size={32} /></div>
-                </div>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+                <div className="mx-auto bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-green-400 rounded-full p-2"><Smile size={32} /></div></div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Satu Langkah Lagi!</h2>
-                <p className="text-slate-500 mb-8 text-sm leading-relaxed">Untuk pengalaman terbaik, harap lengkapi profil Anda dengan nomor HP yang aktif.</p>
-                <div className="text-left mb-8">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Nomor HP (WhatsApp)</label>
-                    <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500 transition-all" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
-                    <p className="text-[11px] text-slate-400 mt-2 flex items-center gap-1"><CheckCircle size={10} /> Notifikasi aktivasi akun akan dikirim ke nomor ini.</p>
-                </div>
+                <p className="text-slate-500 mb-8 text-sm">Lengkapi profil Anda dengan nomor HP yang aktif.</p>
+                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
                 <button onClick={handleSave} disabled={loading} className="w-full bg-green-600 text-white py-3.5 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
             </div>
         </div>
     );
 };
 
-// --- COMPONENT: UPGRADE MODAL (ALUR PEMBAYARAN STEP-BY-STEP) ---
+// --- COMPONENT: UPGRADE MODAL (NEW DESIGN) ---
 const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
-    const [step, setStep] = useState(1); // 1: Pilih Paket, 2: Info Pembayaran
+    const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState(null);
 
     useEffect(() => { if(!isOpen) setStep(1); }, [isOpen]);
-
     if (!isOpen) return null;
 
-    // DATA REKENING ADMIN
     const BANK_ACCOUNTS = [
-        { bank: 'BCA', number: '0461416518', name: 'ARDIKA YUDHA GUNANTARA' },
-        { bank: 'MANDIRI', number: '1550011606632', name: 'ARDIKA YUDHA GUNANTARA' },
+        { bank: 'BCA', number: '1234567890', name: 'ADMIN NILAIKU', color: 'text-blue-700' },
+        { bank: 'MANDIRI', number: '123000456000', name: 'ADMIN NILAIKU', color: 'text-yellow-600' },
+        { bank: 'BRI', number: '0987654321000', name: 'ADMIN NILAIKU', color: 'text-blue-500' },
     ];
     const ADMIN_WA = "6281234567890"; 
 
-    const handleSelectPlan = (planName, price) => {
-        setSelectedPlan({ name: planName, price });
-        setStep(2);
-    };
-
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text);
-        alert(`Disalin: ${text}`);
-    };
-
+    const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
+    const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     const handleConfirmWA = () => {
-        const text = `Halo Admin NILAIKU, saya sudah transfer pembayaran.\n\n` +
-                     `📧 Email Akun: ${userEmail}\n` +
-                     `📦 Paket: ${selectedPlan.name}\n` +
-                     `💰 Nominal: ${selectedPlan.price}\n\n` +
-                     `Mohon segera diproses aktivasinya. Terima kasih!`;
-        const url = `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
+        const text = `Halo Admin NILAIKU, saya sudah transfer.\n\n📧 Email: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon diproses.`;
+        window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(text)}`, '_blank');
     };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden relative my-auto flex flex-col md:flex-row min-h-[550px]">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden relative my-auto flex flex-col md:flex-row min-h-[600px]">
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors z-20"><X size={20} className="text-slate-500" /></button>
                 
-                {/* SISI KIRI: BANNER */}
+                {/* SISI KIRI */}
                 <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white md:w-2/5 flex flex-col justify-between">
                     <div>
                         <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4"><Crown size={28} className="text-yellow-300" /></div>
-                        <h2 className="text-2xl font-bold mb-2">NILAIKU Premium</h2>
-                        <p className="opacity-90 mb-6 text-sm leading-relaxed">Fitur "Input Nilai" terkunci untuk user Free. Upgrade sekarang untuk akses penuh.</p>
+                        <h2 className="text-2xl font-bold mb-2">Upgrade Premium</h2>
+                        <p className="opacity-90 mb-6 text-sm">Akses fitur lengkap untuk produktivitas maksimal.</p>
                         <ul className="space-y-3 text-sm">
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Buka Gembok Input Nilai</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Hitung Rata-rata Otomatis</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Input Nilai Unlimited</span></li>
                             <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Excel & PDF</span></li>
                         </ul>
                     </div>
-                    <p className="text-xs opacity-60 mt-8">© 2025 NILAIKU</p>
                 </div>
 
-                {/* SISI KANAN: KONTEN DINAMIS */}
+                {/* SISI KANAN */}
                 <div className="p-6 md:p-8 md:w-3/5 bg-slate-50 flex flex-col">
-                    
-                    {/* STEP 1: PILIH PAKET */}
                     {step === 1 && (
                         <div className="animate-fade-in flex-1 flex flex-col">
-                            <h3 className="text-xl font-bold text-slate-800 mb-1 text-center">Pilih Paket Terbaik</h3>
-                            <p className="text-slate-500 text-center text-sm mb-6">Investasi hemat untuk administrasi yang rapi.</p>
-                            
+                            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Pilih Paket</h3>
                             <div className="space-y-4 flex-1">
-                                <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-4 hover:border-blue-500 cursor-pointer transition-all hover:shadow-md group relative">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <h4 className="font-bold text-slate-700">Paket Semester</h4>
-                                        <span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">Populer</span>
-                                    </div>
+                                <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
+                                    <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
                                     <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
-                                    <p className="text-xs text-slate-400 mt-2">Akses penuh selama satu semester.</p>
                                 </div>
-
-                                <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-4 cursor-pointer relative shadow-sm hover:shadow-md transition-all">
-                                    <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-0.5 rounded-full font-bold uppercase tracking-wider">Hemat 50%</div>
-                                    <div className="flex justify-between items-center mb-1"><h4 className="font-bold text-slate-800">Paket Tahunan</h4></div>
+                                <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
+                                    <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
+                                    <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-800">Paket Tahunan</h4></div>
                                     <div className="flex items-end gap-1"><span className="text-2xl font-bold text-green-600">Rp 79.000</span><span className="text-xs text-slate-400 mb-1">/ tahun</span></div>
-                                    <p className="text-xs text-slate-500 mt-2">Paling hemat! Solusi jangka panjang.</p>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* STEP 2: INFO REKENING & KONFIRMASI */}
                     {step === 2 && (
                         <div className="animate-fade-in h-full flex flex-col">
-                            <button onClick={() => setStep(1)} className="flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 mb-4"><ArrowLeft size={16}/> Kembali</button>
+                            <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-6"><ArrowLeft size={18}/> Kembali</button>
                             
-                            <div className="text-center mb-6">
-                                <h3 className="font-bold text-slate-800">Selesaikan Pembayaran</h3>
-                                <p className="text-sm text-slate-500">Silakan transfer sejumlah:</p>
-                                <div className="bg-green-100 text-green-800 font-bold text-2xl py-3 rounded-lg mt-2 border border-green-200 cursor-pointer hover:bg-green-200 transition-colors" onClick={() => handleCopy(selectedPlan.price)}>
+                            <div className="text-center mb-8">
+                                <p className="text-sm text-slate-500 mb-2">Total Pembayaran</p>
+                                <div className="bg-green-50 text-green-700 font-bold text-3xl py-4 rounded-xl border border-green-200" onClick={() => handleCopy(selectedPlan.price)}>
                                     {selectedPlan.price}
                                 </div>
                             </div>
 
-                            <div className="space-y-3 overflow-y-auto max-h-[180px] pr-1 custom-scrollbar mb-4">
+                            <p className="text-sm font-bold text-slate-700 mb-3">Transfer ke salah satu bank:</p>
+                            <div className="space-y-3 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar mb-4">
                                 {BANK_ACCOUNTS.map((bank, idx) => (
-                                    <div key={idx} className="bg-white border p-3 rounded-lg flex justify-between items-center">
-                                        <div><p className="font-bold text-slate-700 text-sm">{bank.bank}</p><p className="text-xs text-slate-400">{bank.name}</p></div>
-                                        <div className="text-right"><p className="font-mono font-bold text-slate-600">{bank.number}</p><button onClick={() => handleCopy(bank.number)} className="text-[10px] text-blue-600 hover:underline flex items-center justify-end gap-1"><Copy size={10}/> Salin</button></div>
+                                    <div key={idx} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h4 className={`font-bold text-lg ${bank.color}`}>{bank.bank}</h4>
+                                            <button onClick={() => handleCopy(bank.number)} className="text-xs text-blue-600 flex items-center gap-1 font-medium bg-blue-50 px-2 py-1 rounded hover:bg-blue-100"><Copy size={12}/> Salin</button>
+                                        </div>
+                                        <p className="text-xl font-mono font-bold text-slate-800 tracking-wide mb-1">{bank.number}</p>
+                                        <p className="text-xs text-slate-400 uppercase font-medium">{bank.name}</p>
                                     </div>
                                 ))}
                             </div>
 
                             <div className="mt-auto">
-                                <button onClick={handleConfirmWA} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg flex items-center justify-center gap-2">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-5 h-5" alt="WA"/> Konfirmasi Pembayaran
+                                <button onClick={handleConfirmWA} className="w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6" alt="WA"/>
+                                    Konfirmasi Pembayaran
                                 </button>
-                                <p className="text-[10px] text-center text-slate-400 mt-2">Bukti transfer akan dikirim ke WhatsApp Admin</p>
                             </div>
                         </div>
                     )}
@@ -229,7 +193,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const handleGoogleLogin = async () => {
       setError(''); setLoading(true); const provider = new GoogleAuthProvider();
       try { await signInWithPopup(auth, provider); } 
-      catch (err) { console.error(err); setError("Gagal login Google. Periksa koneksi atau konfigurasi Firebase."); } 
+      catch (err) { console.error(err); setError("Gagal login Google."); } 
       finally { setLoading(false); }
   };
 
@@ -245,7 +209,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
         <div className="text-center mb-8">
           <div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div>
           <h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1>
-          <p className="text-slate-500">Sistem Aplikasi Nilai Digital</p>
+          <p className="text-slate-500">Sistem Rekap Nilai Digital</p>
         </div>
         <button onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 py-3 rounded-lg font-bold flex justify-center gap-2 hover:bg-slate-50 transition-colors">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"/> 
@@ -258,17 +222,21 @@ const LoginScreen = ({ onLoginSuccess }) => {
             {error && <div className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</div>}
             <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-70">{loading ? '...' : (isRegistering ? 'Daftar Akun' : 'Masuk')}</button>
         </form>
-        <div className="mt-4 text-center text-sm text-slate-600">{isRegistering ? 'Sudah punya akun?' : 'Belum punya akun?'} <button onClick={()=>{setIsRegistering(!isRegistering);setError('')}} className="text-blue-600 font-bold ml-1 hover:underline">{isRegistering ? 'Login' : 'Daftar'}</button></div>
+        <div className="mt-4 text-center text-sm text-slate-600">
+            {isRegistering ? 'Sudah punya akun?' : 'Belum punya akun?'} 
+            <button onClick={()=>{setIsRegistering(!isRegistering);setError('')}} className="text-blue-600 font-bold ml-1 hover:underline">{isRegistering ? 'Login' : 'Daftar'}</button>
+        </div>
       </div>
     </div>
   );
 };
 
-// --- DASHBOARD ---
+// --- COMPONENTS UTAMA (DASHBOARD) ---
 const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade }) => {
   const totalSiswa = students.length;
   const totalMapel = subjects.length;
   const totalNilai = grades.length;
+  
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
@@ -276,32 +244,45 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
             <h1 className="text-xl md:text-2xl font-bold mb-2">Hallo Bapak/Ibu Guru! 👋</h1>
             <p className="opacity-90 mb-4 text-sm md:text-base">Anda login sebagai: <b>{user?.email}</b></p>
             <div className="flex flex-wrap gap-2">
-                <span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>{isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}</span>
-                {!isPremium && (<button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">Upgrade Sekarang 🚀</button>)}
+                <span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>
+                    {isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}
+                </span>
+                {!isPremium && (
+                    <button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">
+                        Upgrade Sekarang 🚀
+                    </button>
+                )}
             </div>
         </div>
         <GraduationCap className="absolute -right-6 -bottom-6 text-white opacity-10 w-32 h-32 md:w-48 md:h-48" />
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-green-100 text-green-600 rounded-lg"><BookOpen size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Mata Pelajaran</p><h3 className="text-2xl font-bold text-slate-800">{totalMapel}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div></div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+          <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div>
+          <div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+          <div className="p-3 bg-green-100 text-green-600 rounded-lg"><BookOpen size={24} /></div>
+          <div><p className="text-xs text-slate-500 uppercase font-bold">Mata Pelajaran</p><h3 className="text-2xl font-bold text-slate-800">{totalMapel}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+          <div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div>
+          <div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div>
+        </div>
       </div>
     </div>
   );
 };
 
-// --- DATA SISWA ---
+// --- DATA SISWA (RESPONSIVE FORM) ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
   const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
   
   const handleFileUpload = (e) => {
-    // --- UPDATED: Use window.XLSX instead of import ---
-    const XLSX = window.XLSX;
-    if (!XLSX) { alert("⚠️ Library Excel sedang dimuat. Mohon tunggu sebentar lalu coba lagi."); return; }
-    
+    if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -312,7 +293,12 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
             const ws = wb.Sheets[wb.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(ws);
             let count = 0;
-            data.forEach(row => { if(row.Nama && row.Kelas) { addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' }); count++; } });
+            data.forEach(row => {
+                if(row.Nama && row.Kelas) {
+                    addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' });
+                    count++;
+                }
+            });
             alert(`Berhasil mengimpor ${count} siswa!`);
         } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
     };
@@ -324,7 +310,16 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   return (
     <div className="space-y-6">
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"><h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3><div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3>
+            <div className="relative w-full md:w-auto">
+                <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" />
+                <label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto">
+                    <Upload size={16}/> Import Excel
+                </label>
+            </div>
+        </div>
+        
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/>
             <input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
@@ -332,27 +327,67 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
             <button type="submit" className="bg-blue-600 text-white p-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-700 font-medium transition-colors w-full"><Plus size={18}/> Tambah</button>
         </form>
       </div>
+
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td></tr>))}</tbody></table></div>
+        <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50">
+            <h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3>
+            <div className="relative w-full md:w-64">
+                <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
+                <input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+            </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-600 uppercase font-semibold">
+              <tr>
+                  <th className="p-4 whitespace-nowrap">Nama Siswa</th>
+                  <th className="p-4 whitespace-nowrap">NISN</th>
+                  <th className="p-4 whitespace-nowrap">Kelas</th>
+                  <th className="p-4 text-center whitespace-nowrap">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredStudents.map(s => (
+                  <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td>
+                      <td className="p-4 text-slate-500">{s.nisn}</td>
+                      <td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td>
+                      <td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td>
+                  </tr>
+              ))}
+              {filteredStudents.length === 0 && (<tr><td colSpan="4" className="p-8 text-center text-slate-400">Data tidak ditemukan</td></tr>)}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 };
 
-// --- MATA PELAJARAN ---
+// --- MATA PELAJARAN (RESPONSIVE FORM) ---
 const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     const [newMapel, setNewMapel] = useState('');
     const handleSubmit = (e) => { e.preventDefault(); addSubject({ nama: newMapel, kkm: 75 }); setNewMapel(''); };
     return (
         <div className="space-y-6">
-            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100"><h3 className="font-bold text-lg mb-4 text-slate-800">Tambah Mapel</h3><form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4"><input value={newMapel} onChange={e=>setNewMapel(e.target.value)} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/><button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">Simpan</button></form></div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-right">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-right"><button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button></td></tr>)}</tbody></table></div>
+            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 className="font-bold text-lg mb-4 text-slate-800">Tambah Mapel</h3>
+                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
+                    <input value={newMapel} onChange={e=>setNewMapel(e.target.value)} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/>
+                    <button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">Simpan</button>
+                </form>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-right">Aksi</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-right"><button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button></td></tr>)}</tbody>
+                </table>
+            </div>
         </div>
     )
 }
 
-// --- SCORE DETAIL MODAL ---
+// --- INPUT NILAI COMPONENTS ---
 const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     const [localScores, setLocalScores] = useState([]);
     useEffect(() => { if (Array.isArray(scores)) { setLocalScores([...scores]); } else if (scores) { setLocalScores([scores]); } else { setLocalScores([]); } }, [scores, isOpen]);
@@ -362,7 +397,7 @@ const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     if (!isOpen) return null;
     const average = calculateAverage(localScores);
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto z-[70]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden my-auto">
                 <div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold text-lg">{title}</h3><button onClick={onClose} className="hover:bg-blue-700 p-1 rounded"><X size={20}/></button></div>
                 <div className="p-6 max-h-[60vh] overflow-y-auto">
@@ -376,7 +411,6 @@ const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     );
 };
 
-// --- INPUT NILAI ---
 const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, schoolProfile }) => {
   const availableClasses = useMemo(() => { const uniqueClasses = [...new Set(students.map(s => s.kelas))]; return uniqueClasses.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })); }, [students]);
   const [selectedKelas, setSelectedKelas] = useState('');
@@ -494,12 +528,6 @@ export default function App() {
   const [schoolProfile, setSchoolProfile] = useState({ nama: 'SDN Contoh', alamat: 'Jl. Contoh', npsn: '-', kodepos: '-', kepsek: '-', nip: '-' });
 
   useEffect(() => {
-    // --- ADDED: Dynamic script loading for SheetJS (xlsx) ---
-    const script = document.createElement('script');
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-    script.async = true;
-    document.body.appendChild(script);
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -517,14 +545,7 @@ export default function App() {
       }
       setLoading(false);
     });
-    
-    // Cleanup script on unmount
-    return () => {
-      unsubscribe();
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -548,7 +569,6 @@ export default function App() {
   const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
   const handleLogout = async () => { await signOut(auth); };
 
-  // MENU UTAMA
   const menuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false },
       { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false },
@@ -580,11 +600,20 @@ export default function App() {
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900">
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} userEmail={user.email} />
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 shadow-xl z-10">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-            <div className="bg-blue-600 text-white p-2 rounded-lg"><GraduationCap size={24} /></div>
-            <div><h1 className="font-bold text-lg text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-500">Sistem Aplikasi Nilai Digital</p></div>
+      
+      {/* Mobile Menu Backdrop */}
+      {isMobileMenuOpen && <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>}
+      
+      {/* Sidebar Desktop & Mobile Drawer */}
+      <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 flex items-center justify-between border-b border-slate-100">
+            <div className="flex items-center gap-2">
+                <div className="bg-blue-600 text-white p-2 rounded-lg"><GraduationCap size={24} /></div>
+                <div><h1 className="font-bold text-lg text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-500">Aplikasi Nilai Digital</p></div>
+            </div>
+            <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400"><ChevronLeft size={24} /></button>
         </div>
+        
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
                 const isLocked = item.premium && !isPremium;
@@ -606,26 +635,18 @@ export default function App() {
             <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold"><LogOut size={20}/> Logout</button>
         </div>
       </aside>
+
       <main className="flex-1 overflow-y-auto relative h-full w-full">
-        <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-20 w-full">
+        {/* Mobile Header Toggle */}
+        <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-30">
             <div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>NILAIKU</div>
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600 bg-slate-50 rounded-lg">{isMobileMenuOpen ? <X /> : <Menu />}</button>
+            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 bg-slate-50 rounded-lg"><Menu /></button>
         </div>
-        {isMobileMenuOpen && (
-            <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="absolute top-16 left-0 w-full bg-white shadow-xl border-b border-slate-200 p-4 space-y-2 animate-fade-in-down" onClick={e => e.stopPropagation()}>
-                    {menuItems.map((item) => (
-                        <button key={item.id} onClick={() => handleMenuClick(item)} className="w-full flex items-center justify-between p-3 rounded-lg text-slate-600 hover:bg-slate-50 border border-slate-100">
-                            <div className="flex items-center gap-3"><item.icon size={20} /> {item.label}</div>
-                            {item.premium && !isPremium && <Lock size={16} className="text-slate-400" />}
-                        </button>
-                    ))}
-                    <button onClick={handleLogout} className="w-full flex items-center gap-3 p-3 text-red-600 font-bold border-t mt-2 pt-4"><LogOut size={20}/> Logout</button>
-                </div>
-            </div>
-        )}
+
         <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-2"><div><h2 className="text-2xl font-bold text-slate-900 capitalize">{activeTab.replace('-', ' ')}</h2><p className="text-slate-500 text-sm hidden md:block">Kelola data akademik sekolah Anda dengan mudah.</p></div></div>
+             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-2">
+                <div><h2 className="text-2xl font-bold text-slate-900 capitalize">{activeTab.replace('-', ' ')}</h2><p className="text-slate-500 text-sm hidden md:block">Kelola data akademik sekolah Anda dengan mudah.</p></div>
+             </div>
              {renderContent()}
         </div>
       </main>
