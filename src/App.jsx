@@ -89,19 +89,16 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     useEffect(() => { if(!isOpen) setStep(1); }, [isOpen]);
     if (!isOpen) return null;
-    
-    // GANTI REKENING DI SINI
     const BANK_ACCOUNTS = [
         { bank: 'BCA', number: '1234567890', name: 'ADMIN NILAIKU', color: 'text-blue-700', bg: 'bg-blue-50' },
         { bank: 'MANDIRI', number: '123000456000', name: 'ADMIN NILAIKU', color: 'text-yellow-600', bg: 'bg-yellow-50' },
         { bank: 'BRI', number: '0987654321000', name: 'ADMIN NILAIKU', color: 'text-blue-500', bg: 'bg-blue-50' },
     ];
     const ADMIN_WA = "6281234567890"; 
-    
     const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
     const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     const handleConfirmWA = () => {
-        const text = `Halo Admin NILAIKU, saya sudah transfer.\n\n📧 Email: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon diproses.`;
+        const text = `Halo Admin NILAIKU, saya sudah transfer.\n\n📧 Email: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon segera diproses aktivasinya. Terima kasih!`;
         window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(text)}`, '_blank');
     };
 
@@ -179,13 +176,32 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const handleGoogleLogin = async () => { setError(''); setLoading(true); const provider = new GoogleAuthProvider(); try { await signInWithPopup(auth, provider); } catch (err) { console.error(err); setError("Gagal login Google."); } finally { setLoading(false); } };
-  const handleAuth = async (e) => { e.preventDefault(); setError(''); setLoading(true); try { isRegistering ? await createUserWithEmailAndPassword(auth, email, password) : await signInWithEmailAndPassword(auth, email, password); } catch (err) { setError(err.message); } finally { setLoading(false); } };
+
+  const handleGoogleLogin = async () => {
+      setError(''); setLoading(true); const provider = new GoogleAuthProvider();
+      try { await signInWithPopup(auth, provider); } 
+      catch (err) { console.error(err); setError("Gagal login Google."); } 
+      finally { setLoading(false); }
+  };
+
+  const handleAuth = async (e) => {
+    e.preventDefault(); setError(''); setLoading(true);
+    try { isRegistering ? await createUserWithEmailAndPassword(auth, email, password) : await signInWithEmailAndPassword(auth, email, password); } 
+    catch (err) { setError(err.message); } finally { setLoading(false); }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8"><div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div><h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1><p className="text-slate-500">Sistem Aplikasi Nilai Digital</p></div>
-        <button onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 py-3 rounded-lg font-bold flex justify-center gap-2 hover:bg-slate-50 transition-colors"><img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"/> <span className="text-sm md:text-base">Masuk dengan Google</span></button>
+        <div className="text-center mb-8">
+          <div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div>
+          <h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1>
+          <p className="text-slate-500">Sistem Aplikasi Nilai Digital</p>
+        </div>
+        <button onClick={handleGoogleLogin} className="w-full bg-white border border-slate-300 py-3 rounded-lg font-bold flex justify-center gap-2 hover:bg-slate-50 transition-colors">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google"/> 
+            <span className="text-sm md:text-base">Masuk dengan Google</span>
+        </button>
         <div className="relative flex py-4 items-center"><div className="flex-grow border-t"></div><span className="mx-4 text-xs text-slate-400">ATAU EMAIL</span><div className="flex-grow border-t"></div></div>
         <form onSubmit={handleAuth} className="space-y-4">
             <input type="email" required className="w-full border p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)}/>
@@ -201,11 +217,20 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
 // --- DASHBOARD ---
 const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade }) => {
-  const totalSiswa = students.length; const totalMapel = subjects.length; const totalNilai = grades.length;
+  const totalSiswa = students.length;
+  const totalMapel = subjects.length;
+  const totalNilai = grades.length;
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div className="relative z-10"><h1 className="text-xl md:text-2xl font-bold mb-2">Hallo Bapak/Ibu Guru! 👋</h1><p className="opacity-90 mb-4 text-sm md:text-base">Anda login sebagai: <b>{user?.email}</b></p><div className="flex flex-wrap gap-2"><span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>{isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}</span>{!isPremium && (<button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">Upgrade Sekarang 🚀</button>)}</div></div>
+        <div className="relative z-10">
+            <h1 className="text-xl md:text-2xl font-bold mb-2">Hallo Bapak/Ibu Guru! 👋</h1>
+            <p className="opacity-90 mb-4 text-sm md:text-base">Anda login sebagai: <b>{user?.email}</b></p>
+            <div className="flex flex-wrap gap-2">
+                <span className={`text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1 ${isPremium ? 'bg-yellow-400 text-yellow-900' : 'bg-slate-700 text-slate-300'}`}>{isPremium ? <><Crown size={12}/> PREMIUM USER</> : 'FREE USER'}</span>
+                {!isPremium && (<button onClick={onShowUpgrade} className="text-xs bg-white text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-50 transition-colors animate-pulse">Upgrade Sekarang 🚀</button>)}
+            </div>
+        </div>
         <GraduationCap className="absolute -right-6 -bottom-6 text-white opacity-10 w-32 h-32 md:w-48 md:h-48" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
@@ -451,7 +476,7 @@ export default function App() {
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.1 (Update)</p></div>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
