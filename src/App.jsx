@@ -66,7 +66,6 @@ const SetupProfileModal = ({ user, onComplete }) => {
         }
         setLoading(true);
         try {
-            // Hanya simpan ke database, tidak kirim WA otomatis (Anti Error)
             await setDoc(doc(db, 'users', user.uid, 'settings', 'profile'), {
                 phoneNumber: phone,
                 email: user.email,
@@ -136,7 +135,6 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
     const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     
-    // Link langsung ke WA Bapak (Manual Konfirmasi)
     const handleConfirmWA = () => {
         const text = `Halo Admin NILAIKU, saya sudah transfer pembayaran.\n\n` +
                      `📧 Email Akun: ${userEmail}\n` +
@@ -151,34 +149,38 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden relative my-auto flex flex-col md:flex-row min-h-[600px]">
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors z-20"><X size={20} className="text-slate-500" /></button>
                 
-                {/* SISI KIRI */}
+                {/* SISI KIRI: BANNER (TEKS KEMBALI SEPERTI PERMINTAAN) */}
                 <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white md:w-2/5 flex flex-col justify-between">
                     <div>
                         <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4"><Crown size={28} className="text-yellow-300" /></div>
-                        <h2 className="text-2xl font-bold mb-2">Upgrade Premium</h2>
-                        <p className="opacity-90 mb-6 text-sm">Akses fitur lengkap untuk produktivitas maksimal.</p>
+                        <h2 className="text-2xl font-bold mb-2">Upgrade ke Premium</h2>
+                        <p className="opacity-90 mb-6 text-sm leading-relaxed">Fitur "Input Nilai" adalah fitur Premium. Upgrade sekarang untuk mulai merekap nilai siswa.</p>
                         <ul className="space-y-3 text-sm">
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Input Nilai Unlimited</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Excel & PDF</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Buka Menu Input Nilai</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Hitung Rata-rata Otomatis</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Laporan ke Excel</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Simpan Data Tanpa Batas</span></li>
                         </ul>
                     </div>
-                    <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU</p>
+                    <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU - Sistem Aplikasi Nilai Digital</p>
                 </div>
 
                 {/* SISI KANAN */}
                 <div className="p-6 md:p-8 md:w-3/5 bg-slate-50 flex flex-col">
                     {step === 1 && (
                         <div className="animate-fade-in flex-1 flex flex-col">
-                            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Pilih Paket</h3>
+                            <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">Pilih Paket Terbaikmu</h3>
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
                                     <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
+                                    <p className="text-xs text-slate-400 mt-2">Cocok untuk mencoba fitur premium selama satu semester.</p>
                                 </div>
                                 <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
                                     <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-800">Paket Tahunan</h4></div>
                                     <div className="flex items-end gap-1"><span className="text-2xl font-bold text-green-600">Rp 79.000</span><span className="text-xs text-slate-400 mb-1">/ tahun</span></div>
+                                    <p className="text-xs text-slate-400 mt-2">Paling hemat! Gunakan full fitur sepanjang tahun ajaran.</p>
                                 </div>
                             </div>
                         </div>
@@ -306,7 +308,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA & OTHER FEATURES ---
+// --- DATA SISWA & OTHER FEATURES (SAMA) ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -422,10 +424,40 @@ export default function App() {
   const [grades, setGrades] = useState([]);
   const [schoolProfile, setSchoolProfile] = useState({ nama: 'SDN Contoh', alamat: 'Jl. Contoh', npsn: '-', kodepos: '-', kepsek: '-', nip: '-' });
 
-  useEffect(() => { const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { setUser(currentUser); if (currentUser) { try { const userRef = doc(db, 'users', currentUser.uid, 'settings', 'profile'); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); setIsPremium(data.isPremium === true); if (!data.phoneNumber) { setNeedsSetup(true); } else { setNeedsSetup(false); } } else { setIsPremium(false); setNeedsSetup(true); } } catch (e) { console.log("Error checking user status", e); } } setLoading(false); }); return () => unsubscribe(); }, []);
-  useEffect(() => { if (!user || needsSetup) return; const studentsRef = collection(db, 'users', user.uid, 'students'); const subjectsRef = collection(db, 'users', user.uid, 'subjects'); const gradesRef = collection(db, 'users', user.uid, 'grades'); const profileRef = collection(db, 'users', user.uid, 'schoolProfile'); const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); }); return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); }; }, [user, needsSetup]);
-  
-  // Data Saving
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+          try {
+            const userRef = doc(db, 'users', currentUser.uid, 'settings', 'profile');
+            const docSnap = await getDoc(userRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setIsPremium(data.isPremium === true);
+                if (!data.phoneNumber) { setNeedsSetup(true); } else { setNeedsSetup(false); }
+            } else {
+                setIsPremium(false); setNeedsSetup(true);
+            }
+          } catch (e) { console.log("Error checking user status", e); }
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user || needsSetup) return;
+    const studentsRef = collection(db, 'users', user.uid, 'students');
+    const subjectsRef = collection(db, 'users', user.uid, 'subjects');
+    const gradesRef = collection(db, 'users', user.uid, 'grades');
+    const profileRef = collection(db, 'users', user.uid, 'schoolProfile');
+    const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); });
+    return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); };
+  }, [user, needsSetup]);
+
   const addStudent = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'students'), { ...data, createdAt: serverTimestamp() });
   const deleteStudent = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'students', id));
   const addSubject = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'subjects'), data);
@@ -434,14 +466,33 @@ export default function App() {
   const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
   const handleLogout = async () => { await signOut(auth); };
 
-  const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
-  const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
-  
+  const menuItems = [
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false },
+      { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false },
+      { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false },
+      { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false },
+      { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true }, // MENU INI DIKUNCI
+  ];
+
+  const handleMenuClick = (item) => {
+      if (item.premium && !isPremium) { setShowUpgradeModal(true); } 
+      else { setActiveTab(item.id); setIsMobileMenuOpen(false); }
+  };
+
   if (loading) return <div className="h-screen flex items-center justify-center text-blue-600">Memuat...</div>;
   if (!user) return <LoginScreen />;
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
 
-  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} deleteSubject={deleteSubject} />; case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} />; case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />; default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>; } };
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />;
+      case 'siswa': return <DataSiswa students={students} addStudent={addStudent} deleteStudent={deleteStudent} />;
+      case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} deleteSubject={deleteSubject} />;
+      case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} />;
+      case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />;
+      default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>;
+    }
+  };
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900 overflow-hidden">
