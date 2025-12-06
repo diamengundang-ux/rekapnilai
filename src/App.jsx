@@ -20,8 +20,11 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-// import * as XLSX from 'xlsx'; // Aktifkan di GitHub
-const XLSX = null; // Hapus baris ini saat di GitHub
+
+// --- PENTING UNTUK GITHUB ---
+// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
+// import * as XLSX from 'xlsx'; 
+const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -86,17 +89,19 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     useEffect(() => { if(!isOpen) setStep(1); }, [isOpen]);
     if (!isOpen) return null;
-
+    
+    // GANTI REKENING DI SINI
     const BANK_ACCOUNTS = [
         { bank: 'BCA', number: '1234567890', name: 'ADMIN NILAIKU', color: 'text-blue-700', bg: 'bg-blue-50' },
         { bank: 'MANDIRI', number: '123000456000', name: 'ADMIN NILAIKU', color: 'text-yellow-600', bg: 'bg-yellow-50' },
         { bank: 'BRI', number: '0987654321000', name: 'ADMIN NILAIKU', color: 'text-blue-500', bg: 'bg-blue-50' },
     ];
     const ADMIN_WA = "6281234567890"; 
+    
     const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
     const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     const handleConfirmWA = () => {
-        const text = `Halo Admin NILAIKU, saya sudah transfer pembayaran.\n\n📧 Email Akun: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon segera diproses aktivasinya. Terima kasih!`;
+        const text = `Halo Admin NILAIKU, saya sudah transfer.\n\n📧 Email: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon diproses.`;
         window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(text)}`, '_blank');
     };
 
@@ -212,7 +217,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   );
 };
 
-// --- DATA SISWA ---
+// --- DATA SISWA (RESPONSIVE FORM) ---
 const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -234,8 +239,19 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
   return (
     <div className="space-y-6">
-      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100"><div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"><h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3><div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div></div><form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4"><input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/><input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/><input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/><button type="submit" className="bg-blue-600 text-white p-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-700 font-medium transition-colors w-full"><Plus size={18}/> Tambah</button></form></div>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div><div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td></tr>))}</tbody></table></div></div>
+      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"><h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3><div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div></div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/>
+            <input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
+            <input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
+            <button type="submit" className="bg-blue-600 text-white p-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-700 font-medium transition-colors w-full"><Plus size={18}/> Tambah</button>
+        </form>
+      </div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
+        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td></tr>))}</tbody></table></div>
+      </div>
     </div>
   );
 };
@@ -383,7 +399,7 @@ export default function App() {
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [grades, setGrades] = useState([]);
-  const [schoolProfile, setSchoolProfile] = useState({});
+  const [schoolProfile, setSchoolProfile] = useState({ nama: '', alamat: '', kepsek: '', telepon: '', email: '', website: '' });
 
   useEffect(() => { const unsubscribe = onAuthStateChanged(auth, async (currentUser) => { setUser(currentUser); if (currentUser) { try { const userRef = doc(db, 'users', currentUser.uid, 'settings', 'profile'); const docSnap = await getDoc(userRef); if (docSnap.exists()) { const data = docSnap.data(); setIsPremium(data.isPremium === true); if (!data.phoneNumber) { setNeedsSetup(true); } else { setNeedsSetup(false); } } else { setIsPremium(false); setNeedsSetup(true); } } catch (e) { console.log("Error checking user status", e); } } setLoading(false); }); return () => unsubscribe(); }, []);
   useEffect(() => { if (!user || needsSetup) return; const studentsRef = collection(db, 'users', user.uid, 'students'); const subjectsRef = collection(db, 'users', user.uid, 'subjects'); const gradesRef = collection(db, 'users', user.uid, 'grades'); const profileRef = collection(db, 'users', user.uid, 'schoolProfile'); const unsubStudents = onSnapshot(query(studentsRef, orderBy('nama')), (snap) => setStudents(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('nama')), (snap) => setSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubGrades = onSnapshot(gradesRef, (snap) => setGrades(snap.docs.map(d => ({ id: d.id, ...d.data() })))); const unsubProfile = onSnapshot(profileRef, (snap) => { if(!snap.empty) setSchoolProfile(snap.docs[0].data()); }); return () => { unsubStudents(); unsubSubjects(); unsubGrades(); unsubProfile(); }; }, [user, needsSetup]);
