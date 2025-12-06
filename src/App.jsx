@@ -24,8 +24,8 @@ import { getAnalytics } from "firebase/analytics";
 // --- PENTING: PENGATURAN EXCEL ---
 // Agar fitur Import Excel berjalan di Vercel/GitHub:
 // 1. HAPUS tanda komentar (//) pada baris import di bawah ini:
-// import * as XLSX from 'xlsx'; 
-// 2. HAPUS atau KOMENTARI baris 'const XLSX = null;' di bawah ini:
+import * as XLSX from 'xlsx'; 
+// const XLSX = null;  <-- Hapus atau beri komentar baris ini
 const XLSX = null; 
 
 // --- KONEKSI KE FIREBASE PRIBADI BAPAK ---
