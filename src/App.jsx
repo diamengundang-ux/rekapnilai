@@ -20,16 +20,16 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-// import * as XLSX from 'xlsx'; // Aktifkan di GitHub
-const XLSX = null; // Hapus di GitHub
+// import * as XLSX from 'xlsx'; // Aktifkan di GitHub dengan menghapus tanda //
+const XLSX = null; // Hapus baris ini saat di GitHub
 
-// --- KONFIGURASI STARSENDER ---
+// --- KONFIGURASI STARSENDER V3 ---
 // Masukkan API Key dari https://starsender.online/dashboard/apikey
-const STARSENDER_API_KEY = "e1c3a283-b963-4186-a391-924bd19a2021"; 
+const STARSENDER_API_KEY = "GANTI_DENGAN_API_KEY_STARSENDER_BAPAK"; 
 
-// Fungsi Kirim WA via StarSender
+// Fungsi Kirim WA via StarSender V3
 const sendWhatsAppNotification = async (targetPhone, userName) => {
-  if (STARSENDER_API_KEY === "e1c3a283-b963-4186-a391-924bd19a2021") {
+  if (STARSENDER_API_KEY === "GANTI_DENGAN_API_KEY_STARSENDER_BAPAK") {
     console.warn("API Key StarSender belum diisi.");
     return;
   }
@@ -43,22 +43,30 @@ const sendWhatsAppNotification = async (targetPhone, userName) => {
   const message = `Halo ${userName} 👋,\n\nSelamat datang di *NILAIKU* - Sistem Aplikasi Nilai Digital.\n\nAkun Anda telah berhasil diverifikasi. Sekarang Anda dapat menggunakan aplikasi untuk kebutuhan administrasi sekolah.\n\nJika ingin membuka fitur Premium, silakan cek menu Upgrade di dashboard.\n\nSalam,\nAdmin NILAIKU`;
 
   try {
-    const response = await fetch("https://starsender.online/api/sendText", {
+    console.log("Mengirim WA ke:", formattedPhone);
+    
+    // Menggunakan Endpoint V3
+    const response = await fetch("https://api.starsender.online/api/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": STARSENDER_API_KEY
+        "Authorization": STARSENDER_API_KEY // Header V3 menggunakan Authorization
       },
       body: JSON.stringify({
-        message: message,
-        tujuan: formattedPhone
+        messageType: "text",
+        to: formattedPhone, // Parameter V3 adalah 'to'
+        body: message       // Parameter V3 adalah 'body'
       })
     });
     
     const result = await response.json();
     console.log("Status Kirim WA:", result);
+    
+    if (result.status !== true && result.message) {
+        console.error("StarSender Error:", result.message);
+    }
   } catch (error) {
-    console.error("Gagal kirim WA:", error);
+    console.error("Gagal kirim WA (Jaringan/CORS):", error);
   }
 };
 
@@ -105,7 +113,8 @@ const SetupProfileModal = ({ user, onComplete }) => {
             }, { merge: true });
 
             // 2. Kirim Notifikasi WA (StarSender)
-            await sendWhatsAppNotification(phone, user.displayName || 'Bapak/Ibu Guru');
+            // Jalankan di background agar user tidak menunggu lama
+            sendWhatsAppNotification(phone, user.displayName || 'Bapak/Ibu Guru');
 
             onComplete();
         } catch (error) { console.error("Error:", error); alert("Gagal menyimpan data."); } finally { setLoading(false); }
@@ -124,7 +133,7 @@ const SetupProfileModal = ({ user, onComplete }) => {
     );
 };
 
-// --- COMPONENT: UPGRADE MODAL (REDESIGNED) ---
+// --- COMPONENT: UPGRADE MODAL (REDESIGNED FOR MOBILE) ---
 const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const [step, setStep] = useState(1);
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -150,6 +159,8 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden relative my-auto flex flex-col md:flex-row min-h-[600px]">
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors z-20"><X size={20} className="text-slate-500" /></button>
+                
+                {/* SISI KIRI (INFO) */}
                 <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white md:w-2/5 flex flex-col justify-between">
                     <div>
                         <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4"><Crown size={28} className="text-yellow-300" /></div>
@@ -162,6 +173,8 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                     </div>
                     <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU</p>
                 </div>
+
+                {/* SISI KANAN (ACTION) */}
                 <div className="p-6 md:p-8 md:w-3/5 bg-slate-50 flex flex-col">
                     {step === 1 && (
                         <div className="animate-fade-in flex-1 flex flex-col">
@@ -179,9 +192,11 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             </div>
                         </div>
                     )}
+
                     {step === 2 && (
                         <div className="animate-fade-in h-full flex flex-col">
                             <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4"><ArrowLeft size={18}/> Kembali</button>
+                            
                             <div className="text-center mb-8">
                                 <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Total Pembayaran</p>
                                 <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg relative group cursor-pointer active:scale-95 transition-transform" onClick={() => handleCopy(selectedPlan.price)}>
@@ -189,6 +204,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-white/20 px-2 py-1 rounded text-white flex items-center gap-1"><Copy size={10}/> Salin</span>
                                 </div>
                             </div>
+
                             <p className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wide">Silakan transfer ke:</p>
                             <div className="space-y-3 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar mb-4">
                                 {BANK_ACCOUNTS.map((bank, idx) => (
@@ -198,7 +214,9 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                                                 <Building2 size={16} className={bank.color} />
                                                 <span className={`font-bold text-sm ${bank.color}`}>{bank.bank}</span>
                                             </div>
-                                            <button onClick={() => handleCopy(bank.number)} className="text-xs text-slate-400 flex items-center gap-1 hover:text-blue-600 active:text-blue-700"><Copy size={14}/></button>
+                                            <button onClick={() => handleCopy(bank.number)} className="text-xs text-slate-400 flex items-center gap-1 hover:text-blue-600 active:text-blue-700">
+                                                <Copy size={14}/>
+                                            </button>
                                         </div>
                                         <div className="flex justify-between items-end">
                                             <div>
@@ -209,6 +227,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                                     </div>
                                 ))}
                             </div>
+
                             <div className="mt-auto">
                                 <button onClick={handleConfirmWA} className="w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg flex items-center justify-center gap-2 text-lg active:scale-95">
                                     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6" alt="WA"/>
@@ -355,7 +374,7 @@ const ScoreDetailModal = ({ isOpen, onClose, title, scores, onSave }) => {
     if (!isOpen) return null;
     const average = calculateAverage(localScores);
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto"><div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden my-auto"><div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold text-lg">{title}</h3><button onClick={onClose} className="hover:bg-blue-700 p-1 rounded"><X size={20}/></button></div><div className="p-6 max-h-[60vh] overflow-y-auto"><div className="flex justify-between items-center mb-4"><span className="text-slate-500 text-sm">Daftar Nilai Masuk</span><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Rata-rata: {average}</span></div><div className="space-y-3">{localScores.map((score, idx) => (<div key={idx} className="flex gap-2 items-center"><span className="text-slate-400 w-6 text-sm font-mono">{idx + 1}.</span><input type="number" className="flex-1 border p-2 rounded outline-none" placeholder="0-100" value={score} onChange={(e) => updateScore(idx, e.target.value)} autoFocus={idx === localScores.length - 1}/><button onClick={() => removeScore(idx)} className="text-red-400 hover:text-red-600"><XCircle size={20}/></button></div>))}</div><button onClick={addScore} className="mt-4 w-full py-2 border-2 border-dashed border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 flex justify-center items-center gap-2 font-medium"><Plus size={16}/> Tambah Nilai</button></div><div className="p-4 border-t bg-slate-50 flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg">Batal</button><button onClick={() => onSave(localScores)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">Simpan Nilai</button></div></div></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in backdrop-blur-sm overflow-y-auto z-[70]"><div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden my-auto"><div className="bg-blue-600 p-4 flex justify-between items-center text-white"><h3 className="font-bold text-lg">{title}</h3><button onClick={onClose} className="hover:bg-blue-700 p-1 rounded"><X size={20}/></button></div><div className="p-6 max-h-[60vh] overflow-y-auto"><div className="flex justify-between items-center mb-4"><span className="text-slate-500 text-sm">Daftar Nilai Masuk</span><span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Rata-rata: {average}</span></div><div className="space-y-3">{localScores.map((score, idx) => (<div key={idx} className="flex gap-2 items-center"><span className="text-slate-400 w-6 text-sm font-mono">{idx + 1}.</span><input type="number" className="flex-1 border p-2 rounded outline-none" placeholder="0-100" value={score} onChange={(e) => updateScore(idx, e.target.value)} autoFocus={idx === localScores.length - 1}/><button onClick={() => removeScore(idx)} className="text-red-400 hover:text-red-600"><XCircle size={20}/></button></div>))}</div><button onClick={addScore} className="mt-4 w-full py-2 border-2 border-dashed border-blue-200 text-blue-600 rounded-lg hover:bg-blue-50 flex justify-center items-center gap-2 font-medium"><Plus size={16}/> Tambah Nilai</button></div><div className="p-4 border-t bg-slate-50 flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg">Batal</button><button onClick={() => onSave(localScores)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">Simpan Nilai</button></div></div></div>
     );
 };
 
