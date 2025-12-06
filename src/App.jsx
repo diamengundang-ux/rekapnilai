@@ -21,11 +21,11 @@ import {
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
 
-// --- INSTRUKSI KHUSUS UNTUK DEPLOY ---
+// --- PENTING: PENGATURAN EXCEL ---
 // Agar fitur Import Excel berjalan di Vercel/GitHub:
 // 1. HAPUS tanda komentar (//) pada baris import di bawah ini:
- import * as XLSX from 'xlsx';
-// 2. HAPUS baris 'const XLSX = null;' di bawah ini:
+// import * as XLSX from 'xlsx'; 
+// 2. HAPUS atau KOMENTARI baris 'const XLSX = null;' di bawah ini:
 const XLSX = null; 
 
 // --- KONEKSI KE FIREBASE PRIBADI BAPAK ---
@@ -75,6 +75,7 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                             </div>
                             <h2 className="text-2xl font-bold mb-2">Upgrade ke Premium</h2>
                             <p className="opacity-90 mb-6 text-sm">Buka potensi penuh aplikasi NILAIKU untuk kemudahan administrasi Anda.</p>
+                            
                             <ul className="space-y-3 text-sm">
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Akses Menu Analisis Grafik</span></li>
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Rapor Lengkap (PDF)</span></li>
@@ -82,10 +83,12 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Prioritas Support 24/7</span></li>
                             </ul>
                         </div>
-                        <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU - Partner Guru Hebat Indonesia</p>
+                        <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU - Sistem Aplikasi Nilai Digital</p>
                     </div>
+
                     <div className="p-6 md:p-8">
                         <h3 className="text-lg font-bold text-center mb-6 text-slate-800">Pilih Paket Terbaikmu</h3>
+                        
                         <div className="space-y-4">
                             <div className="border border-slate-200 rounded-xl p-4 hover:border-blue-500 cursor-pointer transition-all hover:shadow-md group">
                                 <div className="flex justify-between items-center mb-2">
@@ -98,6 +101,7 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 </div>
                                 <p className="text-xs text-slate-500">Cocok untuk mencoba fitur premium selama satu semester.</p>
                             </div>
+
                             <div className="border-2 border-green-500 bg-green-50/30 rounded-xl p-4 cursor-pointer relative shadow-sm">
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
                                     Hemat 50%
@@ -112,6 +116,7 @@ const UpgradeModal = ({ isOpen, onClose }) => {
                                 <p className="text-xs text-slate-500">Paling hemat! Gunakan full fitur sepanjang tahun ajaran.</p>
                             </div>
                         </div>
+
                         <button className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold mt-6 hover:bg-slate-800 transition-all shadow-lg transform active:scale-95 text-sm md:text-base">
                             Beli Sekarang via WhatsApp
                         </button>
@@ -148,6 +153,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="bg-blue-600 text-white p-3 rounded-xl inline-flex mb-4"><GraduationCap size={40} /></div>
+          {/* UPDATED NAME */}
           <h1 className="text-2xl font-bold text-slate-800">NILAIKU</h1>
           <p className="text-slate-500">Sistem Aplikasi Nilai Digital</p>
         </div>
@@ -181,6 +187,7 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
     <div className="space-y-6 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10">
+            {/* UPDATED WELCOME TEXT */}
             <h1 className="text-xl md:text-2xl font-bold mb-2">Hallo Bapak/Ibu Guru! 👋</h1>
             <p className="opacity-90 mb-4 text-sm md:text-base">Anda login sebagai: <b>{user?.email}</b></p>
             <div className="flex flex-wrap gap-2">
@@ -224,7 +231,7 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const handleFileUpload = (e) => {
     // PROTEKSI: Cek apakah library XLSX tersedia
     if (!XLSX) {
-        alert("⚠️ Library Excel belum diaktifkan.\n\nUntuk mengaktifkan: Buka kode 'src/App.jsx', lalu uncomment baris 'import * as XLSX...' di bagian atas file.");
+        alert("⚠️ Library Excel belum diaktifkan.\n\nUntuk mengaktifkan: Buka kode 'src/App.jsx' di GitHub, lalu ikuti instruksi di bagian paling atas file (hapus tanda komentar pada import).");
         return;
     }
 
