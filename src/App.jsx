@@ -25,11 +25,11 @@ const XLSX = null; // Hapus baris ini saat di GitHub
 
 // --- KONFIGURASI STARSENDER V3 ---
 // Masukkan API Key dari https://starsender.online/dashboard/apikey
-const STARSENDER_API_KEY = "GANTI_DENGAN_API_KEY_STARSENDER_BAPAK"; 
+const STARSENDER_API_KEY = "e1c3a283-b963-4186-a391-924bd19a2021"; 
 
 // Fungsi Kirim WA via StarSender V3
 const sendWhatsAppNotification = async (targetPhone, userName) => {
-  if (STARSENDER_API_KEY === "GANTI_DENGAN_API_KEY_STARSENDER_BAPAK") {
+  if (STARSENDER_API_KEY === "e1c3a283-b963-4186-a391-924bd19a2021") {
     console.warn("API Key StarSender belum diisi.");
     return;
   }
