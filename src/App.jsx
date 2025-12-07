@@ -110,10 +110,12 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                     <div>
                         <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4"><Crown size={28} className="text-yellow-300" /></div>
                         <h2 className="text-2xl font-bold mb-2">Upgrade Premium</h2>
-                        <p className="opacity-90 mb-6 text-sm">Akses fitur lengkap untuk produktivitas maksimal.</p>
+                        <p className="opacity-90 mb-6 text-sm">Fitur "Input Nilai" adalah fitur Premium. Upgrade sekarang untuk mulai merekap nilai siswa.</p>
                         <ul className="space-y-3 text-sm">
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Input Nilai Unlimited</span></li>
-                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Excel & PDF</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Buka Menu Input Nilai</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Hitung Rata-rata Otomatis</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Export Laporan ke Excel</span></li>
+                            <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-300"/> <span>Simpan Data Tanpa Batas</span></li>
                         </ul>
                     </div>
                     <p className="text-xs opacity-60 mt-8 hidden md:block">© 2025 NILAIKU</p>
@@ -125,12 +127,12 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-sm text-slate-400">/ 6 bulan</span></div>
                                 </div>
                                 <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
                                     <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-800">Paket Tahunan</h4></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-green-600">Rp 79.000</span><span className="text-xs text-slate-400 mb-1">/ tahun</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-green-600">Rp 79.000</span><span className="text-sm text-slate-400">/ tahun</span></div>
                                 </div>
                             </div>
                         </div>
@@ -245,6 +247,7 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
   const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
+  
   const handleFileUpload = (e) => {
     if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
@@ -259,7 +262,9 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
     };
     reader.readAsBinaryString(file);
   };
+
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
@@ -435,6 +440,17 @@ export default function App() {
   const saveGrade = async (data, gradeId) => { if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); };
   const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
   const handleLogout = async () => { await signOut(auth); };
+  
+  // DEV MODE (SIMULASI ADMIN)
+  const toggleDevPremium = async () => {
+    if (!user) return;
+    const newStatus = !isPremium;
+    try {
+        await setDoc(doc(db, 'users', user.uid, 'settings', 'profile'), { isPremium: newStatus }, { merge: true });
+        setIsPremium(newStatus);
+        alert(`Status Akun: ${newStatus ? "PREMIUM" : "FREE"}`);
+    } catch (error) { console.error("Dev Error:", error); }
+  };
 
   const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
   const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
@@ -463,7 +479,7 @@ export default function App() {
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.0</p></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.1 (Update)</p></div>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
