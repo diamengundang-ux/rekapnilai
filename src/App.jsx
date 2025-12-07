@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, User, UserCheck
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, FileSpreadsheet
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -21,11 +21,10 @@ import {
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
 
-// --- KODE PREVIEW ---
-// Agar tidak error di preview, Import Excel dimatikan dulu.
-// SAAT DI GITHUB: Aktifkan baris import di bawah ini!
+// --- PENTING UNTUK GITHUB ---
+// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
 import * as XLSX from 'xlsx'; 
-// const XLSX = null; 
+// const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -74,11 +73,11 @@ const SetupProfileModal = ({ user, onComplete }) => {
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 animate-fade-in backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-                <div className="mx-auto bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-blue-400 rounded-full p-2"><Smile size={32} /></div></div>
+                <div className="mx-auto bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-green-400 rounded-full p-2"><Smile size={32} /></div></div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Satu Langkah Lagi!</h2>
                 <p className="text-slate-500 mb-8 text-sm">Lengkapi profil Anda dengan nomor HP yang aktif.</p>
-                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
-                <button onClick={handleSave} disabled={loading} className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
+                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
+                <button onClick={handleSave} disabled={loading} className="w-full bg-green-600 text-white py-3.5 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
             </div>
         </div>
     );
@@ -128,7 +127,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-sm text-slate-400">/ 6 bulan</span></div>
                                 </div>
                                 <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
                                     <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
@@ -286,6 +285,17 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
       setEditingId(null);
   }
 
+  const handleDownloadTemplate = () => {
+      if (!XLSX) { alert("⚠️ Library Excel belum aktif."); return; }
+      const ws = XLSX.utils.json_to_sheet([
+          { "Nama": "Budi Santoso", "NISN": "1234567890", "Kelas": "1A", "Gender": "L" },
+          { "Nama": "Siti Aminah", "NISN": "0987654321", "Kelas": "1B", "Gender": "P" }
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Template");
+      XLSX.writeFile(wb, "Template_Siswa.xlsx");
+  };
+
   const handleFileUpload = (e) => {
     if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
@@ -318,7 +328,12 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
-            <div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div>
+            <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                <button onClick={handleDownloadTemplate} className="flex items-center justify-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors w-full md:w-auto">
+                    <FileSpreadsheet size={16}/> Download Template
+                </button>
+                <div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div>
+            </div>
         </div>
         
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
