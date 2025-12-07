@@ -25,7 +25,7 @@ import { getAnalytics } from "firebase/analytics";
 // Agar tidak error di preview, Import Excel dimatikan dulu.
 // SAAT DI GITHUB: Aktifkan baris import di bawah ini!
 import * as XLSX from 'xlsx'; 
-const XLSX = null; 
+// const XLSX = null; 
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
