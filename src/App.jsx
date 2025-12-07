@@ -20,11 +20,7 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-
-// --- PENTING UNTUK GITHUB ---
-// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
-import * as XLSX from 'xlsx'; 
-
+import * as XLSX from 'xlsx'; // Pastikan library ini aktif di package.json
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -89,12 +85,15 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     useEffect(() => { if(!isOpen) setStep(1); }, [isOpen]);
     if (!isOpen) return null;
+    
+    // INFO REKENING (GANTI SESUAI KEBUTUHAN)
     const BANK_ACCOUNTS = [
         { bank: 'BCA', number: '1234567890', name: 'ADMIN NILAIKU', color: 'text-blue-700', bg: 'bg-blue-50' },
         { bank: 'MANDIRI', number: '123000456000', name: 'ADMIN NILAIKU', color: 'text-yellow-600', bg: 'bg-yellow-50' },
         { bank: 'BRI', number: '0987654321000', name: 'ADMIN NILAIKU', color: 'text-blue-500', bg: 'bg-blue-50' },
     ];
     const ADMIN_WA = "6281234567890"; 
+    
     const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
     const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     const handleConfirmWA = () => {
@@ -127,7 +126,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-sm text-slate-400">/ 6 bulan</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
                                 </div>
                                 <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
                                     <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
@@ -238,17 +237,8 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div></div>
-        
-        {/* STATISTIK GENDER */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
-            <div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div>
-            <div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div>
-        </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
-            <div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div>
-            <div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div>
-        </div>
-
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div></div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div></div>
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div></div>
       </div>
     </div>
@@ -277,22 +267,28 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
           { "Nama": "Siti Aminah", "NISN": "0987654321", "Kelas": "1B", "Gender": "P" }
       ];
       
-      if (!XLSX) { alert("⚠️ Library Excel belum aktif. Pastikan kode 'import * as XLSX' sudah diaktifkan di GitHub."); return; }
+      // Menggunakan XLSX dari global window atau import
+      const xlsxLib = window.XLSX || XLSX;
+
+      if (!xlsxLib) { alert("⚠️ Library Excel belum aktif. Pastikan kode 'import * as XLSX' sudah diaktifkan di GitHub."); return; }
       
-      const ws = XLSX.utils.json_to_sheet(templateData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Template");
-      XLSX.writeFile(wb, "Template_Siswa_NILAIKU.xlsx");
+      const ws = xlsxLib.utils.json_to_sheet(templateData);
+      const wb = xlsxLib.utils.book_new();
+      xlsxLib.utils.book_append_sheet(wb, ws, "Template");
+      xlsxLib.writeFile(wb, "Template_Siswa_NILAIKU.xlsx");
   };
 
   const handleFileUpload = (e) => {
-    if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
+    // Menggunakan XLSX dari global window atau import
+    const xlsxLib = window.XLSX || XLSX;
+
+    if (!xlsxLib) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
         try {
-            const bstr = evt.target.result; const wb = XLSX.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws);
+            const bstr = evt.target.result; const wb = xlsxLib.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = xlsxLib.utils.sheet_to_json(ws);
             let count = 0; data.forEach(row => { const nama = row.Nama || row.nama || row.NAMA; const kelas = row.Kelas || row.kelas || row.KELAS; const nisn = row.NISN || row.nisn || '-'; const gender = row.Gender || row.gender || row.JK || 'L'; if(nama && kelas) { addStudent({ nama, nisn, kelas: kelas.toString(), gender }); count++; } });
             alert(`Berhasil mengimpor ${count} siswa!`);
         } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
@@ -325,13 +321,16 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2"><button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:text-yellow-700 p-2 rounded-full hover:bg-yellow-50" title="Edit"><Pencil size={18}/></button><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50" title="Hapus"><Trash size={18}/></button></td></tr>))}</tbody></table></div>
+        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2">
+            <button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:text-yellow-700 p-2 rounded-full hover:bg-yellow-50" title="Edit"><Pencil size={18}/></button>
+            <button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50" title="Hapus"><Trash size={18}/></button>
+        </td></tr>))}</tbody></table></div>
       </div>
     </div>
   );
 };
 
-// --- MATA PELAJARAN (FITUR EDIT) ---
+// --- MATA PELAJARAN (FITUR EDIT + KKM) ---
 const MataPelajaran = ({ subjects, addSubject, updateSubject, deleteSubject }) => {
     const [formData, setFormData] = useState({ nama: '', kkm: 75 });
     const [editingId, setEditingId] = useState(null);
@@ -517,17 +516,6 @@ export default function App() {
   const saveGrade = async (data, gradeId) => { if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); };
   const saveProfile = async (data) => user && await setDoc(doc(db, 'users', user.uid, 'schoolProfile', 'main'), data); 
   const handleLogout = async () => { await signOut(auth); };
-  
-  // DEV MODE (SIMULASI ADMIN)
-  const toggleDevPremium = async () => {
-    if (!user) return;
-    const newStatus = !isPremium;
-    try {
-        await setDoc(doc(db, 'users', user.uid, 'settings', 'profile'), { isPremium: newStatus }, { merge: true });
-        setIsPremium(newStatus);
-        alert(`Status Akun: ${newStatus ? "PREMIUM" : "FREE"}`);
-    } catch (error) { console.error("Dev Error:", error); }
-  };
 
   const menuItems = [ { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, premium: false }, { id: 'sekolah', label: 'Profil Sekolah', icon: School, premium: false }, { id: 'siswa', label: 'Data Siswa', icon: Users, premium: false }, { id: 'mapel', label: 'Mata Pelajaran', icon: BookOpen, premium: false }, { id: 'nilai', label: 'Input Nilai', icon: Pencil, premium: true } ];
   const handleMenuClick = (item) => { if (item.premium && !isPremium) { setShowUpgradeModal(true); } else { setActiveTab(item.id); setIsMobileMenuOpen(false); } };
@@ -556,7 +544,7 @@ export default function App() {
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.3</p></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.4</p></div>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
@@ -593,14 +581,6 @@ export default function App() {
             <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100 mb-2">
                 <LogOut size={18}/> Keluar Aplikasi
             </button>
-            
-            {/* TOMBOL SIMULASI ADMIN (DEV MODE) */}
-            <div className="pt-2 border-t border-slate-200">
-                <p className="text-[10px] text-center text-slate-400 mb-1 uppercase font-bold">Mode Developer</p>
-                <button onClick={toggleDevPremium} className={`w-full py-1.5 rounded text-xs font-bold border ${isPremium ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
-                    {isPremium ? 'Nonaktifkan Premium' : 'Aktifkan Premium'}
-                </button>
-            </div>
         </div>
       </aside>
 
