@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, Wrench
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, User, UserCheck
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -21,10 +21,11 @@ import {
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
 
-// --- PENTING UNTUK GITHUB ---
-// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
-// import * as XLSX from 'xlsx'; 
-const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
+// --- KODE PREVIEW ---
+// Agar tidak error di preview, Import Excel dimatikan dulu.
+// SAAT DI GITHUB: Aktifkan baris import di bawah ini!
+import * as XLSX from 'xlsx'; 
+const XLSX = null; 
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -73,11 +74,11 @@ const SetupProfileModal = ({ user, onComplete }) => {
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 animate-fade-in backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-                <div className="mx-auto bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-green-400 rounded-full p-2"><Smile size={32} /></div></div>
+                <div className="mx-auto bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-blue-400 rounded-full p-2"><Smile size={32} /></div></div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Satu Langkah Lagi!</h2>
                 <p className="text-slate-500 mb-8 text-sm">Lengkapi profil Anda dengan nomor HP yang aktif.</p>
-                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
-                <button onClick={handleSave} disabled={loading} className="w-full bg-green-600 text-white py-3.5 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
+                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
+                <button onClick={handleSave} disabled={loading} className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
             </div>
         </div>
     );
@@ -98,7 +99,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     const handleSelectPlan = (planName, price) => { setSelectedPlan({ name: planName, price }); setStep(2); };
     const handleCopy = (text) => { navigator.clipboard.writeText(text); alert(`Disalin: ${text}`); };
     const handleConfirmWA = () => {
-        const text = `Halo Admin NILAIKU, saya sudah transfer.\n\n📧 Email: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon segera diproses aktivasinya. Terima kasih!`;
+        const text = `Halo Admin NILAIKU, saya sudah transfer pembayaran.\n\n📧 Email Akun: ${userEmail}\n📦 Paket: ${selectedPlan.name}\n💰 Nominal: ${selectedPlan.price}\n\nMohon segera diproses aktivasinya. Terima kasih!`;
         window.open(`https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(text)}`, '_blank');
     };
 
@@ -220,6 +221,10 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   const totalSiswa = students.length;
   const totalMapel = subjects.length;
   const totalNilai = grades.length;
+  // Hitung Laki-laki & Perempuan
+  const totalLaki = students.filter(s => s.gender === 'L').length;
+  const totalPerempuan = students.filter(s => s.gender === 'P').length;
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
@@ -233,21 +238,54 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
         </div>
         <GraduationCap className="absolute -right-6 -bottom-6 text-white opacity-10 w-32 h-32 md:w-48 md:h-48" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-green-100 text-green-600 rounded-lg"><BookOpen size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Mata Pelajaran</p><h3 className="text-2xl font-bold text-slate-800">{totalMapel}</h3></div></div>
+        
+        {/* STATISTIK GENDER */}
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+            <div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div>
+            <div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+            <div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div>
+            <div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div>
+        </div>
+
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div></div>
       </div>
     </div>
   );
 };
 
-// --- DATA SISWA ---
-const DataSiswa = ({ students, addStudent, deleteStudent }) => {
+// --- DATA SISWA (FITUR EDIT + GENDER) ---
+const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => { 
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
-  const handleSubmit = (e) => { e.preventDefault(); addStudent(formData); setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); };
+  const [editingId, setEditingId] = useState(null); 
+
+  const handleSubmit = (e) => { 
+      e.preventDefault(); 
+      if (editingId) {
+          updateStudent(editingId, formData); 
+          alert("Data siswa berhasil diperbarui!");
+      } else {
+          addStudent(formData); 
+      }
+      setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' });
+      setEditingId(null);
+  };
   
+  const handleEdit = (student) => {
+      setFormData({ nama: student.nama, nisn: student.nisn, kelas: student.kelas, gender: student.gender || 'L' });
+      setEditingId(student.id);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  };
+
+  const handleCancelEdit = () => {
+      setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' });
+      setEditingId(null);
+  }
+
   const handleFileUpload = (e) => {
     if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
     const file = e.target.files[0];
@@ -256,7 +294,17 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
     reader.onload = (evt) => {
         try {
             const bstr = evt.target.result; const wb = XLSX.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws);
-            let count = 0; data.forEach(row => { if(row.Nama && row.Kelas) { addStudent({ nama: row.Nama, nisn: row.NISN || '-', kelas: row.Kelas.toString(), gender: row.Gender || 'L' }); count++; } });
+            let count = 0; data.forEach(row => { 
+                const nama = row.Nama || row.nama || row.NAMA;
+                const kelas = row.Kelas || row.kelas || row.KELAS;
+                const nisn = row.NISN || row.nisn || '-';
+                const gender = row.Gender || row.gender || row.JK || 'L'; 
+
+                if(nama && kelas) { 
+                    addStudent({ nama, nisn, kelas: kelas.toString(), gender }); 
+                    count++; 
+                } 
+            });
             alert(`Berhasil mengimpor ${count} siswa!`);
         } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
     };
@@ -268,31 +316,79 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   return (
     <div className="space-y-6">
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"><h3 className="font-bold text-lg text-slate-800">Tambah Siswa Baru</h3><div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div></div>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
+            <div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/>
             <input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
             <input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
-            <button type="submit" className="bg-blue-600 text-white p-2.5 rounded-lg flex justify-center items-center gap-2 hover:bg-blue-700 font-medium transition-colors w-full"><Plus size={18}/> Tambah</button>
+            
+            {/* Input Jenis Kelamin */}
+            <select value={formData.gender} onChange={e=>setFormData({...formData, gender:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+            </select>
+
+            <button type="submit" className={`text-white p-2.5 rounded-lg flex justify-center items-center gap-2 font-medium transition-colors w-full ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                {editingId ? <><Save size={18}/> Update</> : <><Plus size={18}/> Tambah</>}
+            </button>
+            {editingId && (
+                <button type="button" onClick={handleCancelEdit} className="bg-slate-200 text-slate-700 p-2.5 rounded-lg hover:bg-slate-300">Batal</button>
+            )}
         </form>
       </div>
+
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center"><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"><Trash size={18}/></button></td></tr>))}</tbody></table></div>
+        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2">
+            <button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:text-yellow-700 p-2 rounded-full hover:bg-yellow-50" title="Edit"><Pencil size={18}/></button>
+            <button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50" title="Hapus"><Trash size={18}/></button>
+        </td></tr>))}</tbody></table></div>
       </div>
     </div>
   );
 };
 
-// --- MATA PELAJARAN ---
-const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
-    const [newMapel, setNewMapel] = useState('');
-    const [newKKM, setNewKKM] = useState(75);
-    const handleSubmit = (e) => { e.preventDefault(); addSubject({ nama: newMapel, kkm: parseInt(newKKM) }); setNewMapel(''); setNewKKM(75); };
+// --- MATA PELAJARAN (FITUR EDIT) ---
+const MataPelajaran = ({ subjects, addSubject, updateSubject, deleteSubject }) => {
+    const [formData, setFormData] = useState({ nama: '', kkm: 75 });
+    const [editingId, setEditingId] = useState(null);
+
+    const handleSubmit = (e) => { 
+        e.preventDefault(); 
+        if(editingId) {
+            updateSubject(editingId, { nama: formData.nama, kkm: parseInt(formData.kkm) });
+            alert("Mapel berhasil diupdate!");
+        } else {
+            addSubject({ nama: formData.nama, kkm: parseInt(formData.kkm) }); 
+        }
+        setFormData({ nama: '', kkm: 75 }); 
+        setEditingId(null);
+    };
+
+    const handleEdit = (s) => {
+        setFormData({ nama: s.nama, kkm: s.kkm });
+        setEditingId(s.id);
+    }
+
     return (
         <div className="space-y-6">
-            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100"><h3 className="font-bold text-lg mb-4 text-slate-800">Tambah Mapel</h3><form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4"><input value={newMapel} onChange={e=>setNewMapel(e.target.value)} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/><input type="number" value={newKKM} onChange={e=>setNewKKM(e.target.value)} placeholder="KKM" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-32" required/><button type="submit" className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">Simpan</button></form></div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-right">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-right"><button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button></td></tr>)}</tbody></table></div>
+            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 className="font-bold text-lg mb-4 text-slate-800">{editingId ? 'Edit Mapel' : 'Tambah Mapel'}</h3>
+                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
+                    <input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/>
+                    <input type="number" value={formData.kkm} onChange={e=>setFormData({...formData, kkm:e.target.value})} placeholder="KKM" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-32" required/>
+                    <button type="submit" className={`text-white px-6 py-2.5 rounded-lg font-medium ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>{editingId ? 'Update' : 'Simpan'}</button>
+                    {editingId && <button type="button" onClick={()=>{setEditingId(null); setFormData({nama:'', kkm:75})}} className="bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg">Batal</button>}
+                </form>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-center">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-center flex justify-center gap-2">
+                <button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:bg-yellow-50 p-2 rounded-full"><Pencil size={18}/></button>
+                <button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button>
+            </td></tr>)}</tbody></table></div>
         </div>
     )
 }
@@ -434,11 +530,13 @@ export default function App() {
   
   // Data Saving
   const addStudent = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'students'), { ...data, createdAt: serverTimestamp() });
+  const updateStudent = async (id, data) => user && await updateDoc(doc(db, 'users', user.uid, 'students', id), data); // NEW
   const deleteStudent = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'students', id));
   const addSubject = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'subjects'), data);
+  const updateSubject = async (id, data) => user && await updateDoc(doc(db, 'users', user.uid, 'subjects', id), data); // NEW
   const deleteSubject = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'subjects', id));
   const saveGrade = async (data, gradeId) => { if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); };
-  const saveProfile = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'schoolProfile'), data);
+  const saveProfile = async (data) => user && await setDoc(doc(db, 'users', user.uid, 'schoolProfile', 'main'), data); // Fix setDoc
   const handleLogout = async () => { await signOut(auth); };
   
   // DEV MODE (SIMULASI ADMIN)
@@ -459,9 +557,9 @@ export default function App() {
   if (!user) return <LoginScreen />;
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
 
-  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} deleteSubject={deleteSubject} />; 
-      // FIX HERE: Pass schoolProfile prop to InputNilai
-      case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} schoolProfile={schoolProfile} />; 
+  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} updateStudent={updateStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} updateSubject={updateSubject} deleteSubject={deleteSubject} />; 
+      // PASSING PROPS CORRECTLY
+      case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} deleteGrade={()=>{}} schoolProfile={schoolProfile} />; 
       case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />; default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>; } };
 
   return (
@@ -479,7 +577,7 @@ export default function App() {
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.1 (Update)</p></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.2</p></div>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
