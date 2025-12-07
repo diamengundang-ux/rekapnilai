@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, FileSpreadsheet
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, User, UserCheck
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -20,11 +20,6 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-
-// --- PENTING UNTUK GITHUB ---
-// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
-import * as XLSX from 'xlsx'; 
-// const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -127,7 +122,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-sm text-slate-400">/ 6 bulan</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
                                 </div>
                                 <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
                                     <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
@@ -220,7 +215,6 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
   const totalSiswa = students.length;
   const totalMapel = subjects.length;
   const totalNilai = grades.length;
-  // Hitung Laki-laki & Perempuan
   const totalLaki = students.filter(s => s.gender === 'L').length;
   const totalPerempuan = students.filter(s => s.gender === 'P').length;
 
@@ -239,24 +233,15 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div></div>
-        
-        {/* STATISTIK GENDER */}
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
-            <div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div>
-            <div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div>
-        </div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
-            <div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div>
-            <div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div>
-        </div>
-
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div></div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div></div>
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div></div>
       </div>
     </div>
   );
 };
 
-// --- DATA SISWA (FITUR EDIT + GENDER) ---
+// --- DATA SISWA ---
 const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => { 
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
@@ -264,61 +249,26 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
 
   const handleSubmit = (e) => { 
       e.preventDefault(); 
-      if (editingId) {
-          updateStudent(editingId, formData); 
-          alert("Data siswa berhasil diperbarui!");
-      } else {
-          addStudent(formData); 
-      }
-      setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' });
-      setEditingId(null);
+      if (editingId) { updateStudent(editingId, formData); alert("Data siswa berhasil diperbarui!"); } else { addStudent(formData); }
+      setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); setEditingId(null);
   };
   
-  const handleEdit = (student) => {
-      setFormData({ nama: student.nama, nisn: student.nisn, kelas: student.kelas, gender: student.gender || 'L' });
-      setEditingId(student.id);
-      window.scrollTo({ top: 0, behavior: 'smooth' }); 
-  };
+  const handleEdit = (student) => { setFormData({ nama: student.nama, nisn: student.nisn, kelas: student.kelas, gender: student.gender || 'L' }); setEditingId(student.id); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleCancelEdit = () => { setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); setEditingId(null); }
 
-  const handleCancelEdit = () => {
-      setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' });
-      setEditingId(null);
-  }
-
-  const handleDownloadTemplate = () => {
-      if (!XLSX) { alert("⚠️ Library Excel belum aktif."); return; }
-      const ws = XLSX.utils.json_to_sheet([
-          { "Nama": "Budi Santoso", "NISN": "1234567890", "Kelas": "1A", "Gender": "L" },
-          { "Nama": "Siti Aminah", "NISN": "0987654321", "Kelas": "1B", "Gender": "P" }
-      ]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Template");
-      XLSX.writeFile(wb, "Template_Siswa.xlsx");
-  };
-
-  const handleFileUpload = (e) => {
-    if (!XLSX) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-        try {
+    try {
+        const XLSX = await import('xlsx'); // DYNAMIC IMPORT (SAFE)
+        const reader = new FileReader();
+        reader.onload = (evt) => {
             const bstr = evt.target.result; const wb = XLSX.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws);
-            let count = 0; data.forEach(row => { 
-                const nama = row.Nama || row.nama || row.NAMA;
-                const kelas = row.Kelas || row.kelas || row.KELAS;
-                const nisn = row.NISN || row.nisn || '-';
-                const gender = row.Gender || row.gender || row.JK || 'L'; 
-
-                if(nama && kelas) { 
-                    addStudent({ nama, nisn, kelas: kelas.toString(), gender }); 
-                    count++; 
-                } 
-            });
+            let count = 0; data.forEach(row => { const nama = row.Nama || row.nama || row.NAMA; const kelas = row.Kelas || row.kelas || row.KELAS; const nisn = row.NISN || row.nisn || '-'; const gender = row.Gender || row.gender || row.JK || 'L'; if(nama && kelas) { addStudent({ nama, nisn, kelas: kelas.toString(), gender }); count++; } });
             alert(`Berhasil mengimpor ${count} siswa!`);
-        } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
-    };
-    reader.readAsBinaryString(file);
+        };
+        reader.readAsBinaryString(file);
+    } catch (error) { console.error("Excel Error:", error); alert("Gagal memuat modul Excel. Pastikan sudah install 'npm install xlsx'"); }
   };
 
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -328,40 +278,20 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
       <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
-            <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                <button onClick={handleDownloadTemplate} className="flex items-center justify-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors w-full md:w-auto">
-                    <FileSpreadsheet size={16}/> Download Template
-                </button>
-                <div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div>
-            </div>
+            <div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div>
         </div>
-        
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/>
             <input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
             <input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
-            
-            {/* Input Jenis Kelamin */}
-            <select value={formData.gender} onChange={e=>setFormData({...formData, gender:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white">
-                <option value="L">Laki-laki</option>
-                <option value="P">Perempuan</option>
-            </select>
-
-            <button type="submit" className={`text-white p-2.5 rounded-lg flex justify-center items-center gap-2 font-medium transition-colors w-full ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                {editingId ? <><Save size={18}/> Update</> : <><Plus size={18}/> Tambah</>}
-            </button>
-            {editingId && (
-                <button type="button" onClick={handleCancelEdit} className="bg-slate-200 text-slate-700 p-2.5 rounded-lg hover:bg-slate-300">Batal</button>
-            )}
+            <select value={formData.gender} onChange={e=>setFormData({...formData, gender:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+            <button type="submit" className={`text-white p-2.5 rounded-lg flex justify-center items-center gap-2 font-medium transition-colors w-full ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>{editingId ? <><Save size={18}/> Update</> : <><Plus size={18}/> Tambah</>}</button>
+            {editingId && (<button type="button" onClick={handleCancelEdit} className="bg-slate-200 text-slate-700 p-2.5 rounded-lg hover:bg-slate-300">Batal</button>)}
         </form>
       </div>
-
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2">
-            <button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:text-yellow-700 p-2 rounded-full hover:bg-yellow-50" title="Edit"><Pencil size={18}/></button>
-            <button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50" title="Hapus"><Trash size={18}/></button>
-        </td></tr>))}</tbody></table></div>
+        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2"><button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:text-yellow-700 p-2 rounded-full hover:bg-yellow-50" title="Edit"><Pencil size={18}/></button><button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50" title="Hapus"><Trash size={18}/></button></td></tr>))}</tbody></table></div>
       </div>
     </div>
   );
@@ -371,39 +301,12 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
 const MataPelajaran = ({ subjects, addSubject, updateSubject, deleteSubject }) => {
     const [formData, setFormData] = useState({ nama: '', kkm: 75 });
     const [editingId, setEditingId] = useState(null);
-
-    const handleSubmit = (e) => { 
-        e.preventDefault(); 
-        if(editingId) {
-            updateSubject(editingId, { nama: formData.nama, kkm: parseInt(formData.kkm) });
-            alert("Mapel berhasil diupdate!");
-        } else {
-            addSubject({ nama: formData.nama, kkm: parseInt(formData.kkm) }); 
-        }
-        setFormData({ nama: '', kkm: 75 }); 
-        setEditingId(null);
-    };
-
-    const handleEdit = (s) => {
-        setFormData({ nama: s.nama, kkm: s.kkm });
-        setEditingId(s.id);
-    }
-
+    const handleSubmit = (e) => { e.preventDefault(); if(editingId) { updateSubject(editingId, { nama: formData.nama, kkm: parseInt(formData.kkm) }); alert("Mapel berhasil diupdate!"); } else { addSubject({ nama: formData.nama, kkm: parseInt(formData.kkm) }); } setFormData({ nama: '', kkm: 75 }); setEditingId(null); };
+    const handleEdit = (s) => { setFormData({ nama: s.nama, kkm: s.kkm }); setEditingId(s.id); }
     return (
         <div className="space-y-6">
-            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 className="font-bold text-lg mb-4 text-slate-800">{editingId ? 'Edit Mapel' : 'Tambah Mapel'}</h3>
-                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
-                    <input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/>
-                    <input type="number" value={formData.kkm} onChange={e=>setFormData({...formData, kkm:e.target.value})} placeholder="KKM" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-32" required/>
-                    <button type="submit" className={`text-white px-6 py-2.5 rounded-lg font-medium ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>{editingId ? 'Update' : 'Simpan'}</button>
-                    {editingId && <button type="button" onClick={()=>{setEditingId(null); setFormData({nama:'', kkm:75})}} className="bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg">Batal</button>}
-                </form>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-center">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-center flex justify-center gap-2">
-                <button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:bg-yellow-50 p-2 rounded-full"><Pencil size={18}/></button>
-                <button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button>
-            </td></tr>)}</tbody></table></div>
+            <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100"><h3 className="font-bold text-lg mb-4 text-slate-800">{editingId ? 'Edit Mapel' : 'Tambah Mapel'}</h3><form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4"><input value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} placeholder="Nama Mata Pelajaran" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 flex-1" required/><input type="number" value={formData.kkm} onChange={e=>setFormData({...formData, kkm:e.target.value})} placeholder="KKM" className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-32" required/><button type="submit" className={`text-white px-6 py-2.5 rounded-lg font-medium ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>{editingId ? 'Update' : 'Simpan'}</button>{editingId && <button type="button" onClick={()=>{setEditingId(null); setFormData({nama:'', kkm:75})}} className="bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg">Batal</button>}</form></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4">Mapel</th><th className="p-4">KKM</th><th className="p-4 text-center">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{subjects.map(s => <tr key={s.id} className="hover:bg-slate-50"><td className="p-4 font-medium">{s.nama}</td><td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">{s.kkm}</span></td><td className="p-4 text-center flex justify-center gap-2"><button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:bg-yellow-50 p-2 rounded-full"><Pencil size={18}/></button><button onClick={()=>deleteSubject(s.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full"><Trash size={18}/></button></td></tr>)}</tbody></table></div>
         </div>
     )
 }
@@ -429,31 +332,15 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
   const [selectedMapel, setSelectedMapel] = useState(subjects[0]?.id || '');
   const [editingGrade, setEditingGrade] = useState({});
   const [modalConfig, setModalConfig] = useState({ isOpen: false, studentId: null, type: '', currentScores: [] });
-
   useEffect(() => { if (!selectedKelas && availableClasses.length > 0) setSelectedKelas(availableClasses[0]); }, [availableClasses]);
   useEffect(() => { if (!selectedMapel && subjects.length > 0) setSelectedMapel(subjects[0].id); }, [subjects]);
-
-  // Safe check for mapel
   const filteredStudents = students.filter(s => s.kelas === selectedKelas);
   const currentMapelData = subjects.find(s => s.id === selectedMapel);
   const kkm = currentMapelData?.kkm || 75;
+  const schoolName = schoolProfile?.nama || "NAMA SEKOLAH"; // Safe Check
+  const schoolAddress = schoolProfile?.alamat || "Alamat Sekolah"; // Safe Check
 
-  // Safe check for schoolProfile to prevent blank screen
-  const schoolName = schoolProfile?.nama || "NAMA SEKOLAH";
-  const schoolAddress = schoolProfile?.alamat || "Alamat Sekolah";
-
-  const getStudentGrade = (studentId) => {
-    const dbGrade = grades.find(g => g.studentId === studentId && g.subjectId === selectedMapel);
-    const localGrade = editingGrade[studentId] || {};
-    return {
-      harian: localGrade.harian !== undefined ? localGrade.harian : (dbGrade?.harian || []),
-      tugas: localGrade.tugas !== undefined ? localGrade.tugas : (dbGrade?.tugas || []),
-      uts: localGrade.uts !== undefined ? localGrade.uts : (dbGrade?.uts || ''),
-      uas: localGrade.uas !== undefined ? localGrade.uas : (dbGrade?.uas || ''),
-      dbId: dbGrade?.id
-    };
-  };
-
+  const getStudentGrade = (studentId) => { const dbGrade = grades.find(g => g.studentId === studentId && g.subjectId === selectedMapel); const localGrade = editingGrade[studentId] || {}; return { harian: localGrade.harian !== undefined ? localGrade.harian : (dbGrade?.harian || []), tugas: localGrade.tugas !== undefined ? localGrade.tugas : (dbGrade?.tugas || []), uts: localGrade.uts !== undefined ? localGrade.uts : (dbGrade?.uts || ''), uas: localGrade.uas !== undefined ? localGrade.uas : (dbGrade?.uas || ''), dbId: dbGrade?.id }; };
   const handleSimpleChange = (studentId, field, value) => { setEditingGrade(prev => ({ ...prev, [studentId]: { ...prev[studentId], [field]: value } })); };
   const openDetailModal = (studentId, type, currentScores, studentName) => { setModalConfig({ isOpen: true, studentId, type, currentScores, studentName }); };
   const handleModalSave = (newScores) => { const cleanedScores = newScores.filter(s => s !== ''); setEditingGrade(prev => ({ ...prev, [modalConfig.studentId]: { ...prev[modalConfig.studentId], [modalConfig.type]: cleanedScores } })); setModalConfig({ ...modalConfig, isOpen: false }); };
@@ -545,13 +432,13 @@ export default function App() {
   
   // Data Saving
   const addStudent = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'students'), { ...data, createdAt: serverTimestamp() });
-  const updateStudent = async (id, data) => user && await updateDoc(doc(db, 'users', user.uid, 'students', id), data); // NEW
+  const updateStudent = async (id, data) => user && await updateDoc(doc(db, 'users', user.uid, 'students', id), data); 
   const deleteStudent = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'students', id));
   const addSubject = async (data) => user && await addDoc(collection(db, 'users', user.uid, 'subjects'), data);
-  const updateSubject = async (id, data) => user && await updateDoc(doc(db, 'users', user.uid, 'subjects', id), data); // NEW
+  const updateSubject = async (id, data) => user && await updateDoc(doc(db, 'users', user.uid, 'subjects', id), data); 
   const deleteSubject = async (id) => user && await deleteDoc(doc(db, 'users', user.uid, 'subjects', id));
   const saveGrade = async (data, gradeId) => { if(user) gradeId ? await updateDoc(doc(db, 'users', user.uid, 'grades', gradeId), data) : await addDoc(collection(db, 'users', user.uid, 'grades'), data); };
-  const saveProfile = async (data) => user && await setDoc(doc(db, 'users', user.uid, 'schoolProfile', 'main'), data); // Fix setDoc
+  const saveProfile = async (data) => user && await setDoc(doc(db, 'users', user.uid, 'schoolProfile', 'main'), data); 
   const handleLogout = async () => { await signOut(auth); };
   
   // DEV MODE (SIMULASI ADMIN)
@@ -573,7 +460,7 @@ export default function App() {
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
 
   const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} updateStudent={updateStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} updateSubject={updateSubject} deleteSubject={deleteSubject} />; 
-      // PASSING PROPS CORRECTLY
+      // PASSING PROPS CORRECTLY & FIX BLANK
       case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} deleteGrade={()=>{}} schoolProfile={schoolProfile} />; 
       case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />; default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>; } };
 
@@ -592,7 +479,7 @@ export default function App() {
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
             <div className="flex items-center gap-3">
                 <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.2</p></div>
+                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.3</p></div>
             </div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
@@ -630,7 +517,7 @@ export default function App() {
                 <LogOut size={18}/> Keluar Aplikasi
             </button>
             
-            {/* TOMBOL SIMULASI ADMIN (Hapus ini jika sudah tidak butuh testing) */}
+            {/* TOMBOL SIMULASI ADMIN (DEV MODE) */}
             <div className="pt-2 border-t border-slate-200">
                 <p className="text-[10px] text-center text-slate-400 mb-1 uppercase font-bold">Mode Developer</p>
                 <button onClick={toggleDevPremium} className={`w-full py-1.5 rounded text-xs font-bold border ${isPremium ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}`}>
