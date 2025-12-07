@@ -3,7 +3,7 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, Wrench
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -127,12 +127,12 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <div className="space-y-4 flex-1">
                                 <div onClick={() => handleSelectPlan('Paket Semester', 'Rp 49.000')} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-500 cursor-pointer shadow-sm relative group">
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-700">Paket Semester</h4><span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-1 rounded-full font-bold">Populer</span></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-sm text-slate-400">/ 6 bulan</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-blue-600">Rp 49.000</span><span className="text-xs text-slate-400 mb-1">/ 6 bulan</span></div>
                                 </div>
                                 <div onClick={() => handleSelectPlan('Paket Tahunan', 'Rp 79.000')} className="bg-white border-2 border-green-500 rounded-xl p-5 cursor-pointer shadow-md relative">
                                     <div className="absolute -top-3 right-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold">HEMAT 50%</div>
                                     <div className="flex justify-between items-center mb-2"><h4 className="font-bold text-slate-800">Paket Tahunan</h4></div>
-                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-green-600">Rp 79.000</span><span className="text-sm text-slate-400">/ tahun</span></div>
+                                    <div className="flex items-end gap-1"><span className="text-2xl font-bold text-green-600">Rp 79.000</span><span className="text-xs text-slate-400 mb-1">/ tahun</span></div>
                                 </div>
                             </div>
                         </div>
@@ -284,7 +284,7 @@ const DataSiswa = ({ students, addStudent, deleteStudent }) => {
   );
 };
 
-// --- MATA PELAJARAN (FIX: ADA KKM) ---
+// --- MATA PELAJARAN ---
 const MataPelajaran = ({ subjects, addSubject, deleteSubject }) => {
     const [newMapel, setNewMapel] = useState('');
     const [newKKM, setNewKKM] = useState(75);
