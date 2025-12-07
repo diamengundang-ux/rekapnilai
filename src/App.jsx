@@ -3,12 +3,12 @@ import {
   Users, BookOpen, School, FileText, LayoutDashboard, 
   Plus, Save, Trash, Pencil, Download, Printer, Search,
   Menu, X, ChevronRight, GraduationCap, Calculator, XCircle, LogOut, Lock, Mail, Upload,
-  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, User, UserCheck, FileSpreadsheet
+  Star, CheckCircle, Crown, ArrowLeft, Copy, Smile, CreditCard, ChevronLeft, Building2, Phone, Globe, User, UserCheck, FileSpreadsheet, CheckSquare, Square
 } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { 
   getFirestore, collection, addDoc, updateDoc, setDoc, getDoc, 
-  deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp 
+  deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, writeBatch 
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -20,7 +20,11 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-import * as XLSX from 'xlsx'; // Pastikan library ini aktif di package.json
+
+// --- PENTING UNTUK GITHUB ---
+// Hapus tanda // di depan baris import di bawah ini agar Excel jalan di Vercel:
+ import * as XLSX from 'xlsx'; 
+// const XLSX = null; // Hapus baris ini jika import XLSX di atas sudah diaktifkan
 
 // --- KONEKSI KE FIREBASE ---
 const firebaseConfig = {
@@ -69,11 +73,11 @@ const SetupProfileModal = ({ user, onComplete }) => {
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 animate-fade-in backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-                <div className="mx-auto bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-green-400 rounded-full p-2"><Smile size={32} /></div></div>
+                <div className="mx-auto bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mb-6"><div className="bg-black text-blue-400 rounded-full p-2"><Smile size={32} /></div></div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Satu Langkah Lagi!</h2>
                 <p className="text-slate-500 mb-8 text-sm">Lengkapi profil Anda dengan nomor HP yang aktif.</p>
-                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-green-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
-                <button onClick={handleSave} disabled={loading} className="w-full bg-green-600 text-white py-3.5 rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
+                <input type="tel" placeholder="Contoh: 081234567890" className="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-8" value={phone} onChange={e => setPhone(e.target.value)} autoFocus />
+                <button onClick={handleSave} disabled={loading} className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg disabled:opacity-70">{loading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}</button>
             </div>
         </div>
     );
@@ -86,7 +90,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
     useEffect(() => { if(!isOpen) setStep(1); }, [isOpen]);
     if (!isOpen) return null;
     
-    // INFO REKENING (GANTI SESUAI KEBUTUHAN)
+    // GANTI REKENING DI SINI
     const BANK_ACCOUNTS = [
         { bank: 'BCA', number: '1234567890', name: 'ADMIN NILAIKU', color: 'text-blue-700', bg: 'bg-blue-50' },
         { bank: 'MANDIRI', number: '123000456000', name: 'ADMIN NILAIKU', color: 'text-yellow-600', bg: 'bg-yellow-50' },
@@ -141,7 +145,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                             <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 mb-4"><ArrowLeft size={18}/> Kembali</button>
                             <div className="text-center mb-8">
                                 <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide font-bold">Total Pembayaran</p>
-                                <div className="bg-green-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg text-center">
+                                <div className="bg-blue-600 text-white font-bold text-3xl py-4 rounded-xl shadow-lg text-center">
                                     {selectedPlan.price}
                                 </div>
                             </div>
@@ -158,7 +162,7 @@ const UpgradeModal = ({ isOpen, onClose, userEmail }) => {
                                 ))}
                             </div>
                             <div className="mt-auto">
-                                <button onClick={handleConfirmWA} className="w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition-all shadow-lg flex items-center justify-center gap-2 text-lg active:scale-95"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6" alt="WA"/> Konfirmasi Pembayaran</button>
+                                <button onClick={handleConfirmWA} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg flex items-center justify-center gap-2 text-lg active:scale-95"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6" alt="WA"/> Konfirmasi Pembayaran</button>
                             </div>
                         </div>
                     )}
@@ -214,13 +218,14 @@ const LoginScreen = ({ onLoginSuccess }) => {
   );
 };
 
-// --- DASHBOARD ---
+// --- DASHBOARD (PERBAIKAN STATISTIK GENDER) ---
 const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade }) => {
   const totalSiswa = students.length;
   const totalMapel = subjects.length;
   const totalNilai = grades.length;
-  const totalLaki = students.filter(s => s.gender === 'L').length;
-  const totalPerempuan = students.filter(s => s.gender === 'P').length;
+  // Hitung Laki-laki & Perempuan
+  const totalLaki = students.filter(s => s.gender === 'L' || s.gender === 'Laki-laki').length;
+  const totalPerempuan = students.filter(s => s.gender === 'P' || s.gender === 'Perempuan').length;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -237,19 +242,29 @@ const Dashboard = ({ user, students, subjects, grades, isPremium, onShowUpgrade 
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Total Siswa</p><h3 className="text-2xl font-bold text-slate-800">{totalSiswa}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div></div>
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div></div>
+        
+        {/* STATISTIK GENDER */}
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+            <div className="p-3 bg-blue-50 text-blue-500 rounded-lg"><User size={24} /></div>
+            <div><p className="text-xs text-slate-500 uppercase font-bold">Laki-laki</p><h3 className="text-2xl font-bold text-slate-800">{totalLaki}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+            <div className="p-3 bg-pink-50 text-pink-500 rounded-lg"><UserCheck size={24} /></div>
+            <div><p className="text-xs text-slate-500 uppercase font-bold">Perempuan</p><h3 className="text-2xl font-bold text-slate-800">{totalPerempuan}</h3></div>
+        </div>
+
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4"><div className="p-3 bg-orange-100 text-orange-600 rounded-lg"><FileText size={24} /></div><div><p className="text-xs text-slate-500 uppercase font-bold">Nilai Masuk</p><h3 className="text-2xl font-bold text-slate-800">{totalNilai}</h3></div></div>
       </div>
     </div>
   );
 };
 
-// --- DATA SISWA (FITUR EDIT + GENDER + TEMPLATE) ---
-const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => { 
+// --- DATA SISWA (FITUR EDIT + GENDER + BULK DELETE) ---
+const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent, user }) => { 
   const [formData, setFormData] = useState({ nama: '', nisn: '', kelas: '', gender: 'L' });
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState(null); 
+  const [selectedIds, setSelectedIds] = useState([]); // Untuk Bulk Delete
 
   const handleSubmit = (e) => { 
       e.preventDefault(); 
@@ -257,21 +272,22 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
       setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); setEditingId(null);
   };
   
-  const handleEdit = (student) => { setFormData({ nama: student.nama, nisn: student.nisn, kelas: student.kelas, gender: student.gender || 'L' }); setEditingId(student.id); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleEdit = (student) => {
+      setFormData({ nama: student.nama, nisn: student.nisn, kelas: student.kelas, gender: student.gender || 'L' });
+      setEditingId(student.id);
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  };
+
   const handleCancelEdit = () => { setFormData({ nama: '', nisn: '', kelas: '', gender: 'L' }); setEditingId(null); }
 
   const handleDownloadTemplate = () => {
-      // Data dummy untuk template
       const templateData = [
           { "Nama": "Budi Santoso", "NISN": "1234567890", "Kelas": "1A", "Gender": "L" },
           { "Nama": "Siti Aminah", "NISN": "0987654321", "Kelas": "1B", "Gender": "P" }
       ];
-      
-      // Menggunakan XLSX dari global window atau import
+      // Menggunakan XLSX dari global window
       const xlsxLib = window.XLSX || XLSX;
-
-      if (!xlsxLib) { alert("⚠️ Library Excel belum aktif. Pastikan kode 'import * as XLSX' sudah diaktifkan di GitHub."); return; }
-      
+      if (!xlsxLib) { alert("⚠️ Library Excel belum aktif."); return; }
       const ws = xlsxLib.utils.json_to_sheet(templateData);
       const wb = xlsxLib.utils.book_new();
       xlsxLib.utils.book_append_sheet(wb, ws, "Template");
@@ -279,21 +295,45 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
   };
 
   const handleFileUpload = (e) => {
-    // Menggunakan XLSX dari global window atau import
     const xlsxLib = window.XLSX || XLSX;
-
-    if (!xlsxLib) { alert("⚠️ Library Excel belum diaktifkan. Aktifkan di kode."); return; }
+    if (!xlsxLib) { alert("⚠️ Library Excel belum diaktifkan."); return; }
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
         try {
             const bstr = evt.target.result; const wb = xlsxLib.read(bstr, { type: 'binary' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = xlsxLib.utils.sheet_to_json(ws);
-            let count = 0; data.forEach(row => { const nama = row.Nama || row.nama || row.NAMA; const kelas = row.Kelas || row.kelas || row.KELAS; const nisn = row.NISN || row.nisn || '-'; const gender = row.Gender || row.gender || row.JK || 'L'; if(nama && kelas) { addStudent({ nama, nisn, kelas: kelas.toString(), gender }); count++; } });
+            let count = 0; data.forEach(row => { 
+                const nama = row.Nama || row.nama || row.NAMA;
+                const kelas = row.Kelas || row.kelas || row.KELAS;
+                const nisn = row.NISN || row.nisn || '-';
+                const gender = row.Gender || row.gender || row.JK || 'L'; 
+                if(nama && kelas) { addStudent({ nama, nisn, kelas: kelas.toString(), gender }); count++; } 
+            });
             alert(`Berhasil mengimpor ${count} siswa!`);
         } catch (error) { console.error("Excel Error:", error); alert("Gagal membaca file Excel."); }
     };
     reader.readAsBinaryString(file);
+  };
+
+  // Bulk Delete
+  const handleSelectAll = (e) => {
+      if (e.target.checked) { setSelectedIds(filteredStudents.map(s => s.id)); } else { setSelectedIds([]); }
+  };
+  const handleSelectOne = (id) => {
+      if (selectedIds.includes(id)) { setSelectedIds(selectedIds.filter(sid => sid !== id)); } else { setSelectedIds([...selectedIds, id]); }
+  };
+  const handleBulkDelete = async () => {
+      if(!window.confirm(`Yakin hapus ${selectedIds.length} siswa terpilih?`)) return;
+      const db = getFirestore();
+      const batch = writeBatch(db);
+      selectedIds.forEach(id => {
+          const ref = doc(db, 'users', user.uid, 'students', id);
+          batch.delete(ref);
+      });
+      await batch.commit();
+      setSelectedIds([]);
+      alert("Siswa terpilih berhasil dihapus!");
   };
 
   const filteredStudents = students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -304,6 +344,9 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h3 className="font-bold text-lg text-slate-800">{editingId ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                {selectedIds.length > 0 && (
+                    <button onClick={handleBulkDelete} className="flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors w-full md:w-auto"><Trash size={16}/> Hapus ({selectedIds.length})</button>
+                )}
                 <button onClick={handleDownloadTemplate} className="flex items-center justify-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors w-full md:w-auto"><FileSpreadsheet size={16}/> Template</button>
                 <div className="relative w-full md:w-auto"><input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} className="hidden" id="excel-upload" /><label htmlFor="excel-upload" className="cursor-pointer flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"><Upload size={16}/> Import Excel</label></div>
             </div>
@@ -313,15 +356,27 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
             <input placeholder="Nama Lengkap" value={formData.nama} onChange={e=>setFormData({...formData, nama:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2 w-full" required/>
             <input placeholder="NISN" value={formData.nisn} onChange={e=>setFormData({...formData, nisn:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
             <input placeholder="Kelas (misal: 1A)" value={formData.kelas} onChange={e=>setFormData({...formData, kelas:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full" required/>
+            
             <select value={formData.gender} onChange={e=>setFormData({...formData, gender:e.target.value})} className="border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-full bg-white"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
-            <button type="submit" className={`text-white p-2.5 rounded-lg flex justify-center items-center gap-2 font-medium transition-colors w-full ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>{editingId ? <><Save size={18}/> Update</> : <><Plus size={18}/> Tambah</>}</button>
+
+            <button type="submit" className={`text-white p-2.5 rounded-lg flex justify-center items-center gap-2 font-medium transition-colors w-full ${editingId ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                {editingId ? <><Save size={18}/> Update</> : <><Plus size={18}/> Tambah</>}
+            </button>
             {editingId && (<button type="button" onClick={handleCancelEdit} className="bg-slate-200 text-slate-700 p-2.5 rounded-lg hover:bg-slate-300">Batal</button>)}
         </form>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-4 border-b flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50"><h3 className="font-bold text-slate-800">Daftar Siswa ({filteredStudents.length})</h3><div className="relative w-full md:w-64"><Search className="absolute left-3 top-2.5 text-slate-400" size={18} /><input placeholder="Cari nama siswa..." className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:border-blue-500 w-full" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} /></div></div>
-        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold"><tr><th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (<tr key={s.id} className="hover:bg-slate-50 transition-colors"><td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2">
+        <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold">
+            <tr>
+                <th className="p-4 w-10 text-center"><input type="checkbox" onChange={handleSelectAll} checked={selectedIds.length === filteredStudents.length && filteredStudents.length > 0} /></th>
+                <th className="p-4 whitespace-nowrap">Nama Siswa</th><th className="p-4 whitespace-nowrap">NISN</th><th className="p-4 whitespace-nowrap">L/P</th><th className="p-4 whitespace-nowrap">Kelas</th><th className="p-4 text-center whitespace-nowrap">Aksi</th>
+            </tr>
+            </thead><tbody className="divide-y divide-slate-100">{filteredStudents.map(s => (
+                <tr key={s.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.includes(s.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="p-4 text-center"><input type="checkbox" checked={selectedIds.includes(s.id)} onChange={() => handleSelectOne(s.id)} /></td>
+                    <td className="p-4 font-medium text-slate-800 min-w-[150px]">{s.nama}</td><td className="p-4 text-slate-500">{s.nisn}</td><td className="p-4 text-slate-500">{s.gender || 'L'}</td><td className="p-4"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{s.kelas}</span></td><td className="p-4 text-center flex justify-center gap-2">
             <button onClick={()=>handleEdit(s)} className="text-yellow-500 hover:text-yellow-700 p-2 rounded-full hover:bg-yellow-50" title="Edit"><Pencil size={18}/></button>
             <button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50" title="Hapus"><Trash size={18}/></button>
         </td></tr>))}</tbody></table></div>
@@ -330,7 +385,7 @@ const DataSiswa = ({ students, addStudent, updateStudent, deleteStudent }) => {
   );
 };
 
-// --- MATA PELAJARAN (FITUR EDIT + KKM) ---
+// --- MATA PELAJARAN (FITUR EDIT) ---
 const MataPelajaran = ({ subjects, addSubject, updateSubject, deleteSubject }) => {
     const [formData, setFormData] = useState({ nama: '', kkm: 75 });
     const [editingId, setEditingId] = useState(null);
@@ -426,7 +481,7 @@ const InputNilai = ({ students, subjects, grades, saveGrade, deleteGrade, school
   return (
     <div className="space-y-6">
       <ScoreDetailModal isOpen={modalConfig.isOpen} onClose={() => setModalConfig({...modalConfig, isOpen: false})} title={`Input ${modalConfig.type === 'harian' ? 'Nilai Harian' : 'Nilai Tugas'} - ${modalConfig.studentName}`} scores={modalConfig.currentScores} onSave={handleModalSave} />
-      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-end md:items-center no-print"><div className="flex flex-col md:flex-row gap-4 w-full md:w-auto"><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Kelas</label><select value={selectedKelas} onChange={e => setSelectedKelas(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{availableClasses.length > 0 ? availableClasses.map(k => <option key={k} value={k}>{k}</option>) : <option>Belum ada kelas</option>}</select></div><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Mapel</label><select value={selectedMapel} onChange={e => setSelectedMapel(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{subjects.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}</select></div></div><div className="flex gap-2 w-full md:w-auto"><button onClick={exportToCSV} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium"><Download size={16} /> Excel</button><button onClick={() => window.print()} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 text-sm font-medium"><Printer size={16} /> PDF</button></div></div>
+      <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-end md:items-center no-print"><div className="flex flex-col md:flex-row gap-4 w-full md:w-auto"><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Kelas</label><select value={selectedKelas} onChange={e => setSelectedKelas(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{availableClasses.length > 0 ? availableClasses.map(k => <option key={k} value={k}>{k}</option>) : <option>Belum ada kelas</option>}</select></div><div className="flex flex-col gap-1 w-full md:w-48"><label className="text-xs font-bold text-slate-500 uppercase">Mapel</label><select value={selectedMapel} onChange={e => setSelectedMapel(e.target.value)} className="border p-2 rounded-lg bg-slate-50 outline-none w-full">{subjects.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}</select></div></div><div className="flex gap-2 w-full md:w-auto"><button onClick={exportToCSV} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"><Download size={16} /> Excel</button><button onClick={() => window.print()} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-900 text-sm font-medium"><Printer size={16} /> PDF</button></div></div>
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden print-area">
         <div className="hidden print-header p-8 text-center border-b-2 border-black mb-4"><h1 className="text-2xl font-bold uppercase">{schoolName}</h1><p>{schoolAddress}</p><hr className="my-4 border-black"/><h2 className="text-xl font-bold underline mb-4">REKAP NILAI SISWA</h2><div className="flex justify-between text-sm mb-4"><p>Kelas: {selectedKelas}</p><p>Mapel: {currentMapelData?.nama || '-'}</p><p>TA: {new Date().getFullYear()}</p></div></div>
         <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b"><tr><th className="p-4 w-10">No</th><th className="p-4 min-w-[150px]">Nama Siswa</th><th className="p-4 w-28 text-center">Harian</th><th className="p-4 w-28 text-center">Tugas</th><th className="p-4 w-20 text-center">UTS</th><th className="p-4 w-20 text-center">UAS</th><th className="p-4 w-20 text-center">Akhir</th><th className="p-4 w-20 text-center no-print">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{filteredStudents.map((s, idx) => { const g = getStudentGrade(s.id); const avgH = calculateAverage(g.harian); const avgT = calculateAverage(g.tugas); const final = ((parseFloat(avgH) + parseFloat(avgT) + parseFloat(g.uts||0) + parseFloat(g.uas||0))/4).toFixed(2); const isPassed = parseFloat(final) >= kkm; const unsaved = editingGrade[s.id]; return (<tr key={s.id} className={`transition-colors ${unsaved ? 'bg-yellow-50' : 'hover:bg-slate-50'}`}><td className="p-4 text-center text-slate-500">{idx + 1}</td><td className="p-4"><div className="font-medium text-slate-800">{s.nama}</div><div className="text-xs text-slate-400">{s.nisn}</div></td><td className="p-4 text-center"><div onClick={() => openDetailModal(s.id, 'harian', g.harian, s.nama)} className="border rounded p-2 cursor-pointer hover:bg-blue-50 flex justify-between items-center no-print-border"><span className="font-bold text-slate-700">{avgH}</span><Calculator size={14} className="text-blue-400"/></div><span className="hidden print-only">{avgH}</span></td><td className="p-4 text-center"><div onClick={() => openDetailModal(s.id, 'tugas', g.tugas, s.nama)} className="border rounded p-2 cursor-pointer hover:bg-blue-50 flex justify-between items-center no-print-border"><span className="font-bold text-slate-700">{avgT}</span><Calculator size={14} className="text-blue-400"/></div><span className="hidden print-only">{avgT}</span></td><td className="p-4 text-center"><input type="number" className="w-16 p-1 border rounded text-center outline-none no-print-border" value={g.uts} onChange={e => handleSimpleChange(s.id, 'uts', e.target.value)} placeholder="0"/><span className="hidden print-only">{g.uts}</span></td><td className="p-4 text-center"><input type="number" className="w-16 p-1 border rounded text-center outline-none no-print-border" value={g.uas} onChange={e => handleSimpleChange(s.id, 'uas', e.target.value)} placeholder="0"/><span className="hidden print-only">{g.uas}</span></td><td className="p-4 text-center"><span className={`font-bold px-2 py-1 rounded ${isPassed ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>{final}</span></td><td className="p-4 text-center no-print"><button onClick={() => handleSaveToDB(s.id)} className={`p-2 rounded-lg transition-colors ${unsaved ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md animate-pulse' : 'text-blue-600 bg-blue-50 hover:bg-blue-100'}`}><Save size={18} /></button></td></tr>); })} {filteredStudents.length === 0 && (<tr><td colSpan="8" className="p-8 text-center text-slate-400">Tidak ada siswa</td></tr>)}</tbody></table></div>
@@ -524,32 +579,19 @@ export default function App() {
   if (!user) return <LoginScreen />;
   if (needsSetup) return <SetupProfileModal user={user} onComplete={() => setNeedsSetup(false)} />;
 
-  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} updateStudent={updateStudent} deleteStudent={deleteStudent} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} updateSubject={updateSubject} deleteSubject={deleteSubject} />; 
-      // PASSING PROPS CORRECTLY & FIX BLANK
+  const renderContent = () => { switch (activeTab) { case 'dashboard': return <Dashboard user={user} students={students} subjects={subjects} grades={grades} isPremium={isPremium} onShowUpgrade={()=>setShowUpgradeModal(true)} />; case 'siswa': return <DataSiswa students={students} addStudent={addStudent} updateStudent={updateStudent} deleteStudent={deleteStudent} user={user} />; case 'mapel': return <MataPelajaran subjects={subjects} addSubject={addSubject} updateSubject={updateSubject} deleteSubject={deleteSubject} />; 
       case 'nilai': return <InputNilai students={students} subjects={subjects} grades={grades} saveGrade={saveGrade} deleteGrade={()=>{}} schoolProfile={schoolProfile} />; 
       case 'sekolah': return <ProfilSekolah profile={schoolProfile} saveProfile={saveProfile} />; default: return <div className="p-8 text-center text-slate-500">Fitur ini hanya tersedia untuk member Premium.</div>; } };
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans text-slate-900 overflow-hidden">
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} userEmail={user.email} />
-      
-      {/* Mobile Sidebar Overlay (Backdrop) */}
-      {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>
-      )}
-      
-      {/* Sidebar (Desktop & Mobile Drawer) */}
+      {isMobileMenuOpen && (<div className="fixed inset-0 z-40 bg-black/50 md:hidden" onClick={() => setIsMobileMenuOpen(false)}></div>)}
       <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:translate-x-0 flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        {/* Header Sidebar */}
         <div className="p-6 flex items-center justify-between border-b border-slate-100">
-            <div className="flex items-center gap-3">
-                <div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div>
-                <div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.4</p></div>
-            </div>
+            <div className="flex items-center gap-3"><div className="bg-blue-600 text-white p-2 rounded-lg shadow-sm"><GraduationCap size={24} /></div><div><h1 className="font-bold text-xl text-slate-800 tracking-tight">NILAIKU</h1><p className="text-xs text-slate-400 font-medium">Versi 2.4 (Final)</p></div></div>
             <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400"><ChevronLeft size={24} /></button>
         </div>
-        
-        {/* Menu Items */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             <p className="text-xs font-bold text-slate-400 px-4 mb-2 mt-2 uppercase tracking-wider">Menu Utama</p>
             {menuItems.map((item) => {
@@ -557,43 +599,25 @@ export default function App() {
                 const isActive = activeTab === item.id;
                 return (
                     <button key={item.id} onClick={() => handleMenuClick(item)} className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${isActive ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100' : 'text-slate-600 hover:bg-slate-50'}`}>
-                        <div className="flex items-center gap-3">
-                            <item.icon size={20} className={`${isActive ? "text-blue-600" : isLocked ? "text-slate-400" : "text-slate-500"}`} />
-                            <span className={`font-medium ${isActive ? "text-blue-700" : isLocked ? "text-slate-400" : "text-slate-600"}`}>{item.label}</span>
-                        </div>
+                        <div className="flex items-center gap-3"><item.icon size={20} className={`${isActive ? "text-blue-600" : isLocked ? "text-slate-400" : "text-slate-500"}`} /><span className={`font-medium ${isActive ? "text-blue-700" : isLocked ? "text-slate-400" : "text-slate-600"}`}>{item.label}</span></div>
                         {isLocked ? (<Lock size={16} className="text-slate-300" />) : isActive && <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>}
                     </button>
                 )
             })}
         </nav>
-
-        {/* Footer Sidebar */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             {!isPremium && (
                 <div onClick={() => setShowUpgradeModal(true)} className="mb-3 bg-gradient-to-r from-orange-400 to-pink-500 p-4 rounded-xl text-white cursor-pointer hover:shadow-lg transition-all relative overflow-hidden group">
-                    <div className="relative z-10">
-                        <h4 className="font-bold text-sm flex items-center gap-2"><Crown size={16} className="text-yellow-200"/> Upgrade Pro</h4>
-                        <p className="text-xs mt-1 opacity-90 group-hover:underline">Buka semua fitur!</p>
-                    </div>
+                    <div className="relative z-10"><h4 className="font-bold text-sm flex items-center gap-2"><Crown size={16} className="text-yellow-200"/> Upgrade Pro</h4><p className="text-xs mt-1 opacity-90 group-hover:underline">Buka semua fitur!</p></div>
                     <Star className="absolute -right-3 -bottom-3 text-white opacity-20 w-20 h-20 rotate-12 group-hover:rotate-45 transition-transform duration-500" />
                 </div>
             )}
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100 mb-2">
-                <LogOut size={18}/> Keluar Aplikasi
-            </button>
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-sm border border-transparent hover:border-red-100 mb-2"><LogOut size={18}/> Keluar Aplikasi</button>
         </div>
       </aside>
-
-      {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto relative h-full w-full bg-slate-50">
-        <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-30">
-            <div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>NILAIKU</div>
-            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 bg-slate-50 rounded-lg hover:bg-slate-100"><Menu /></button>
-        </div>
-        <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
-             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-2"><div><h2 className="text-2xl font-bold text-slate-900 capitalize">{activeTab.replace('-', ' ')}</h2><p className="text-slate-500 text-sm hidden md:block">Kelola data akademik sekolah Anda dengan mudah.</p></div></div>
-             {renderContent()}
-        </div>
+        <div className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-30"><div className="flex items-center gap-2 font-bold text-slate-800"><div className="bg-blue-600 text-white p-1.5 rounded-lg"><GraduationCap size={18} /></div>NILAIKU</div><button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-600 bg-slate-50 rounded-lg hover:bg-slate-100"><Menu /></button></div>
+        <div className="p-4 md:p-8 max-w-7xl mx-auto w-full"><div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-2"><div><h2 className="text-2xl font-bold text-slate-900 capitalize">{activeTab.replace('-', ' ')}</h2><p className="text-slate-500 text-sm hidden md:block">Kelola data akademik sekolah Anda dengan mudah.</p></div></div>{renderContent()}</div>
       </main>
     </div>
   );
